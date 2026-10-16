@@ -5,7 +5,6 @@ from django.db import models
 class Role(models.TextChoices):
     STUDENT = "STUDENT", "Student"
     ADMIN = "ADMIN", "Admin"
-    COLLEGE_STAFF = "COLLEGE_STAFF", "College Staff"
 
 
 class User(AbstractUser):
@@ -29,4 +28,4 @@ class User(AbstractUser):
 
     @property
     def is_staff_role(self):
-        return self.role in (Role.ADMIN, Role.COLLEGE_STAFF)
+        return self.role == Role.ADMIN

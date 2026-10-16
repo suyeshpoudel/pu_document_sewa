@@ -8,6 +8,7 @@ from pages.views import landing
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", landing, name="home"),
+    path("office/", include("office.urls")),
     path("accounts/", include("accounts.urls")),
     path("colleges/", include("colleges.urls")),
     path("documents/", include("catalog.urls")),

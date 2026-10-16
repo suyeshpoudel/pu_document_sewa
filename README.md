@@ -47,7 +47,8 @@ detail page.
 | App | Purpose |
 |---|---|
 | `pages` | Marketing landing page at `/` |
-| `accounts` | Custom user model (email login, roles: Student / Admin / College Staff), register/login/profile |
+| `office` | Admin-only back office at `/office/` — document/bundle CRUD, college CRUD, all applications |
+| `accounts` | Custom user model (email login, roles: Student / Admin), register/login/profile |
 | `colleges` | College directory |
 | `catalog` | Document-type catalog: our service fee, bundles (`includes`), required documents |
 | `applications` | Application workflow: pickup-receipt submission, staff pipeline, courier dispatch + COD |
@@ -88,7 +89,8 @@ Seeded admin login: `admin@pu.edu.np` / `Admin123!` (change it after first login
 - `/accounts/register|login|logout|profile/`
 - `/applications/apply/` — new application (pickup receipt + delivery info)
 - `/applications/mine/` — student's applications (with progress timeline)
-- `/applications/admin/` — staff dashboard (role: ADMIN / COLLEGE_STAFF)
+- `/applications/admin/` — staff dashboard (role: ADMIN)
+- `/office/` — admin office: overview, documents & bundles, colleges, all applications (role: ADMIN)
 - `/admin/` — Django admin
 
 ## Future work

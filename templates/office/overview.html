@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Office — PU Document Sewa{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-1">Office</h1>
+<p class="text-gray-600 mb-6">Manage documents, bundles, colleges, and applications.</p>
+{% include "office/_subnav.html" %}
+
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <a href="{% url 'office_applications' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Awaiting verification</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_pending }}</div>
+    <div class="text-xs text-gray-400 mt-1">Submitted + Pickup Receipt Verified</div>
+  </a>
+  <a href="{% url 'office_applications' %}?status=COLLECTING" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Collecting from PU</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_collecting }}</div>
+  </a>
+  <a href="{% url 'office_applications' %}?status=DISPATCHED" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Dispatched</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_dispatched }}</div>
+  </a>
+  <a href="{% url 'office_applications' %}?status=DELIVERED" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Delivered</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_delivered }}</div>
+  </a>
+  <a href="{% url 'office_applications' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Total applications</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_total }}</div>
+  </a>
+  <a href="{% url 'office_documents' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Documents</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_documents }}</div>
+  </a>
+  <a href="{% url 'office_colleges' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
+    <div class="text-sm text-gray-500">Colleges</div>
+    <div class="text-3xl font-bold mt-1">{{ stat_colleges }}</div>
+  </a>
+</div>
+
+<h2 class="text-lg font-bold mt-10 mb-3">Recent applications</h2>
+{% include "applications/_table.html" with applications=recent_applications %}
+{% endblock %}

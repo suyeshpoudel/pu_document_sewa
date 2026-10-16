@@ -13,10 +13,10 @@ from .forms import ApplicationForm, StatusUpdateForm
 from .models import Application, ApplicationStatus, Shipment
 
 
-class StaffRequiredMixin(UserPassesTestMixin):
+class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         u = self.request.user
-        return u.is_authenticated and u.role in (Role.ADMIN, Role.COLLEGE_STAFF)
+        return u.is_authenticated and u.role == Role.ADMIN
 
 
 class ApplyView(LoginRequiredMixin, View):
@@ -81,7 +81,7 @@ def cancel_application(request, pk):
     return redirect("application_detail", pk=pk)
 
 
-class AdminDashboardView(LoginRequiredMixin, StaffRequiredMixin, ListView):
+class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, ListView):
     template_name = "applications/dashboard.html"
     context_object_name = "applications"
 
@@ -101,7 +101,7 @@ class AdminDashboardView(LoginRequiredMixin, StaffRequiredMixin, ListView):
         return ctx
 
 
-class AdminStatusUpdateView(LoginRequiredMixin, StaffRequiredMixin, View):
+class AdminStatusUpdateView(LoginRequiredMixin, AdminRequiredMixin, View):
     template_name = "applications/status_update.html"
 
     def get(self, request, pk):
@@ -132,7 +132,7 @@ class AdminStatusUpdateView(LoginRequiredMixin, StaffRequiredMixin, View):
         )
 
 
-class AdminApplicationDetailView(LoginRequiredMixin, StaffRequiredMixin, View):
+class AdminApplicationDetailView(LoginRequiredMixin, AdminRequiredMixin, View):
     template_name = "applications/admin_detail.html"
 
     def get(self, request, pk):

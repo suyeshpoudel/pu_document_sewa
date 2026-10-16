@@ -16,8 +16,9 @@
         <a href="{% url 'college_list' %}" class="text-sm text-gray-600 hover:text-blue-600">Colleges</a>
         {% if user.is_authenticated %}
           <a href="{% url 'my_applications' %}" class="text-sm text-gray-600 hover:text-blue-600">My Applications</a>
-          {% if user.role == 'ADMIN' or user.role == 'COLLEGE_STAFF' %}
+          {% if user.role == 'ADMIN' %}
             <a href="{% url 'admin_dashboard' %}" class="text-sm text-gray-600 hover:text-blue-600">Dashboard</a>
+            <a href="{% url 'office_home' %}" class="text-sm font-medium text-blue-700 hover:text-blue-800">Office</a>
           {% endif %}
         {% endif %}
       </div>
