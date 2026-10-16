@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Application #{{ application.pk }} — PU Document Sewa{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Application #{{ application.pk }}</h1>
+      <p class="text-gray-600">{{ application.document_type.name }}</p>
+    </div>
+    <span class="rounded-full text-sm px-3 py-1
+      {% if application.status == 'DELIVERED' or application.status == 'APPROVED' or application.status == 'PAID' %}bg-green-50 text-green-700
+      {% elif application.status == 'REJECTED' or application.status == 'CANCELLED' %}bg-red-50 text-red-700
+      {% else %}bg-yellow-50 text-yellow-700{% endif %}">{{ application.get_status_display }}</span>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Academic details</h2>
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+      <div><dt class="text-gray-500">Full name</dt><dd class="font-medium">{{ application.full_name }}</dd></div>
+      <div><dt class="text-gray-500">Program</dt><dd class="font-medium">{{ application.program }}</dd></div>
+      <div><dt class="text-gray-500">Symbol No.</dt><dd class="font-medium">{{ application.symbol_no }}</dd></div>
+      <div><dt class="text-gray-500">Reg No.</dt><dd class="font-medium">{{ application.reg_no }}</dd></div>
+      <div><dt class="text-gray-500">Passed year</dt><dd class="font-medium">{{ application.passed_year|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500">Copies</dt><dd class="font-medium">{{ application.copies }}</dd></div>
+      <div><dt class="text-gray-500">College</dt><dd class="font-medium">{{ application.college|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500">Phone</dt><dd class="font-medium">{{ application.phone }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Delivery address</h2>
+    <p class="text-sm text-gray-800">
+      {{ application.delivery_municipality }}, Ward {{ application.delivery_ward|default:"—" }},
+      {{ application.delivery_district }}, {{ application.delivery_province }}
+      {% if application.delivery_street %}<br>{{ application.delivery_street }}{% endif %}
+    </p>
+    {% if application.delivery_notes %}<p class="text-sm text-gray-500 mt-2">{{ application.delivery_notes }}</p>{% endif %}
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Uploaded files</h2>
+    <ul class="divide-y divide-gray-100 text-sm">
+      {% for f in application.files.all %}
+        <li class="py-2 flex items-center justify-between">
+          <span>{{ f.file_type }}</span>
+          <a href="{{ f.file.url }}" class="text-blue-600 hover:underline" target="_blank">View</a>
+        </li>
+      {% empty %}
+        <li class="py-2 text-gray-500">No files attached.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if application.admin_remark or application.tracking_no %}
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="font-semibold mb-4">Admin notes</h2>
+      {% if application.admin_remark %}<p class="text-sm text-gray-800">{{ application.admin_remark }}</p>{% endif %}
+      {% if application.tracking_no %}<p class="text-sm text-gray-600 mt-2">Tracking no: <span class="font-mono">{{ application.tracking_no }}</span></p>{% endif %}
+    </div>
+  {% endif %}
+
+  {% if application.status == 'SUBMITTED' or application.status == 'UNDER_REVIEW' or application.status == 'DRAFT' %}
+    <form method="post" action="{% url 'cancel_application' application.pk %}" onsubmit="return confirm('Cancel this application?');">
+      {% csrf_token %}
+      <button class="rounded-lg border border-red-300 text-red-600 px-4 py-2 text-sm hover:bg-red-50">Cancel application</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

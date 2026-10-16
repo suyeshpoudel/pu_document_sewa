@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Admin: Application #{{ application.pk }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Application #{{ application.pk }}</h1>
+      <p class="text-gray-600">{{ application.document_type.name }} — Rs. {{ application.document_type.fee_rs|floatformat:0 }}</p>
+    </div>
+    <a href="{% url 'admin_status_update' application.pk %}" class="rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">Update status</a>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Student</h2>
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+      <div><dt class="text-gray-500">Name</dt><dd class="font-medium">{{ application.full_name }}</dd></div>
+      <div><dt class="text-gray-500">Email</dt><dd class="font-medium">{{ application.student.email }}</dd></div>
+      <div><dt class="text-gray-500">Phone</dt><dd class="font-medium">{{ application.phone }}</dd></div>
+      <div><dt class="text-gray-500">College</dt><dd class="font-medium">{{ application.college|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500">Symbol No.</dt><dd class="font-medium">{{ application.symbol_no }}</dd></div>
+      <div><dt class="text-gray-500">Reg No.</dt><dd class="font-medium">{{ application.reg_no }}</dd></div>
+      <div><dt class="text-gray-500">Program</dt><dd class="font-medium">{{ application.program }}</dd></div>
+      <div><dt class="text-gray-500">Copies</dt><dd class="font-medium">{{ application.copies }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Delivery address</h2>
+    <p class="text-sm text-gray-800">
+      {{ application.delivery_municipality }}, Ward {{ application.delivery_ward|default:"—" }},
+      {{ application.delivery_district }}, {{ application.delivery_province }}
+      {% if application.delivery_street %}<br>{{ application.delivery_street }}{% endif %}
+    </p>
+    {% if application.delivery_notes %}<p class="text-sm text-gray-500 mt-2">{{ application.delivery_notes }}</p>{% endif %}
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Files</h2>
+    <ul class="divide-y divide-gray-100 text-sm">
+      {% for f in application.files.all %}
+        <li class="py-2 flex items-center justify-between">
+          <span>{{ f.file_type }} <span class="text-gray-400">· {{ f.created_at|date:"M j, Y" }}</span></span>
+          <a href="{{ f.file.url }}" class="text-blue-600 hover:underline" target="_blank">View</a>
+        </li>
+      {% empty %}
+        <li class="py-2 text-gray-500">No files attached.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if application.admin_remark or application.tracking_no %}
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="font-semibold mb-4">Current notes</h2>
+      {% if application.admin_remark %}<p class="text-sm text-gray-800">{{ application.admin_remark }}</p>{% endif %}
+      {% if application.tracking_no %}<p class="text-sm text-gray-600 mt-2">Tracking no: <span class="font-mono">{{ application.tracking_no }}</span></p>{% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

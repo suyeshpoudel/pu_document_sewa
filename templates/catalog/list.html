@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Documents — PU Document Sewa{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">University Documents</h1>
+    <p class="text-gray-600 mt-1">Apply online and get your documents delivered to your doorstep.</p>
+  </div>
+  {% if user.is_authenticated %}
+    <a href="{% url 'apply' %}" class="rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">New Application</a>
+  {% endif %}
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for doc in document_types %}
+    <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm flex flex-col">
+      <div class="flex items-start justify-between">
+        <h2 class="font-semibold text-lg"><a href="{% url 'document_detail' doc.slug %}" class="hover:text-blue-600">{{ doc.name }}</a></h2>
+        <span class="rounded-full bg-green-50 text-green-700 text-sm font-medium px-2.5 py-0.5">Rs. {{ doc.fee_rs|floatformat:0 }}</span>
+      </div>
+      <p class="text-gray-600 text-sm mt-2 flex-1">{{ doc.description }}</p>
+      <p class="text-xs text-gray-500 mt-3">Processing: ~{{ doc.processing_days }} days</p>
+      {% if doc.required_docs %}
+        <div class="mt-2 flex flex-wrap gap-1">
+          {% for r in doc.required_docs %}
+            <span class="rounded bg-gray-100 text-gray-600 text-xs px-2 py-0.5">{{ r }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="mt-4">
+        {% if user.is_authenticated %}
+          <a href="{% url 'apply_for' doc.id %}" class="block text-center rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">Apply</a>
+        {% else %}
+          <a href="{% url 'login' %}?next={% url 'apply_for' doc.id %}" class="block text-center rounded-lg border border-blue-600 px-4 py-2 text-blue-600 text-sm hover:bg-blue-50">Login to apply</a>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-gray-500">No document types available yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
