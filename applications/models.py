@@ -3,28 +3,19 @@ from django.db import models
 
 
 class ApplicationStatus(models.TextChoices):
-    DRAFT = "DRAFT", "Draft"
     SUBMITTED = "SUBMITTED", "Submitted"
-    UNDER_REVIEW = "UNDER_REVIEW", "Under Review"
-    APPROVED = "APPROVED", "Approved"
-    REJECTED = "REJECTED", "Rejected"
-    PAID = "PAID", "Paid"
-    PRINTING = "PRINTING", "Printing"
+    RECEIPT_VERIFIED = "RECEIPT_VERIFIED", "Pickup Receipt Verified"
+    COLLECTING = "COLLECTING", "Collecting from PU"
     DISPATCHED = "DISPATCHED", "Dispatched"
     DELIVERED = "DELIVERED", "Delivered"
+    REJECTED = "REJECTED", "Rejected"
     CANCELLED = "CANCELLED", "Cancelled"
 
 
-class PaymentProvider(models.TextChoices):
-    ESEWA = "ESEWA", "eSewa"
-    KHALTI = "KHALTI", "Khalti"
-    BANK_VOUCHER = "BANK_VOUCHER", "Bank Voucher"
-
-
-class PaymentStatus(models.TextChoices):
-    PENDING = "PENDING", "Pending"
-    VERIFIED = "VERIFIED", "Verified"
-    FAILED = "FAILED", "Failed"
+class Courier(models.TextChoices):
+    NEPAL_CAN_MOVE = "NEPAL_CAN_MOVE", "Nepal Can Move"
+    FATAK = "FATAK", "Fatak Express"
+    OTHER = "OTHER", "Other"
 
 
 class Application(models.Model):
@@ -39,13 +30,10 @@ class Application(models.Model):
     )
 
     full_name = models.CharField(max_length=200)
-    symbol_no = models.CharField(max_length=50)
-    reg_no = models.CharField(max_length=50)
-    program = models.CharField(max_length=200)
-    passed_year = models.PositiveIntegerField(null=True, blank=True)
-    copies = models.PositiveIntegerField(default=1)
-
     phone = models.CharField(max_length=20)
+    pu_reference_no = models.CharField(max_length=100)
+    receipt = models.FileField(upload_to="receipts/%Y/%m/")
+
     delivery_province = models.CharField(max_length=100)
     delivery_district = models.CharField(max_length=100)
     delivery_municipality = models.CharField(max_length=100)
@@ -57,7 +45,6 @@ class Application(models.Model):
         max_length=20, choices=ApplicationStatus.choices, default=ApplicationStatus.SUBMITTED
     )
     admin_remark = models.TextField(blank=True)
-    tracking_no = models.CharField(max_length=100, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,6 +59,31 @@ class Application(models.Model):
     def __str__(self):
         return f"{self.full_name} — {self.document_type.name} (#{self.pk})"
 
+    @property
+    def cancelable(self):
+        return self.status in (ApplicationStatus.SUBMITTED, ApplicationStatus.RECEIPT_VERIFIED)
+
+    @property
+    def timeline(self):
+        steps = [
+            (ApplicationStatus.SUBMITTED, "Submitted"),
+            (ApplicationStatus.RECEIPT_VERIFIED, "Pickup receipt verified"),
+            (ApplicationStatus.COLLECTING, "Collecting from PU"),
+            (ApplicationStatus.DISPATCHED, "Dispatched"),
+            (ApplicationStatus.DELIVERED, "Delivered"),
+        ]
+        keys = [k for k, _ in steps]
+        if self.status in keys:
+            current = keys.index(self.status)
+        elif self.status in (ApplicationStatus.REJECTED, ApplicationStatus.CANCELLED):
+            current = 0
+        else:
+            current = -1
+        return [
+            {"key": key, "label": label, "reached": i <= current, "current": i == current}
+            for i, (key, label) in enumerate(steps)
+        ]
+
 
 class ApplicationFile(models.Model):
     application = models.ForeignKey(
@@ -85,33 +97,32 @@ class ApplicationFile(models.Model):
         return f"{self.file_type} for app #{self.application_id}"
 
 
-class Payment(models.Model):
-    application = models.ForeignKey(
-        Application, on_delete=models.CASCADE, related_name="payments"
-    )
-    provider = models.CharField(max_length=20, choices=PaymentProvider.choices)
-    amount_rs = models.PositiveIntegerField()
-    txn_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
-    status = models.CharField(
-        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
-    )
-    raw_payload = models.JSONField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.provider} Rs.{self.amount_rs} ({self.status})"
-
-
 class Shipment(models.Model):
     application = models.OneToOneField(
         Application, on_delete=models.CASCADE, related_name="shipment"
     )
-    courier = models.CharField(max_length=100, default="MANUAL")
+    courier = models.CharField(
+        max_length=30, choices=Courier.choices, default=Courier.NEPAL_CAN_MOVE
+    )
+    courier_name = models.CharField(max_length=100, blank=True)
     tracking_id = models.CharField(max_length=100, blank=True)
+    cod_amount_rs = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=50, default="PENDING")
     events = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Shipment #{self.pk} for app #{self.application_id}"
+        return f"{self.display_courier} {self.tracking_id} (app #{self.application_id})"
+
+    @property
+    def display_courier(self):
+        if self.courier == Courier.OTHER and self.courier_name:
+            return self.courier_name
+        return self.get_courier_display()
+
+    @property
+    def tracking_url(self):
+        if self.courier == Courier.NEPAL_CAN_MOVE:
+            return "https://portal.nepalcanmove.com/track/"
+        return None

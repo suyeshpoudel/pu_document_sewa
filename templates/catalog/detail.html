@@ -4,7 +4,7 @@
 
 {% block content %}
 <nav class="text-sm text-gray-500 mb-4">
-  <a href="{% url 'home' %}" class="hover:text-blue-600">Documents</a>
+  <a href="{% url 'document_list' %}" class="hover:text-blue-600">Documents</a>
   <span class="mx-1">/</span>
   <span class="text-gray-800">{{ doc.name }}</span>
 </nav>
@@ -16,8 +16,23 @@
         <h1 class="text-2xl font-bold">{{ doc.name }}</h1>
         <p class="text-gray-600 mt-2">{{ doc.description }}</p>
       </div>
-      <span class="rounded-full bg-green-50 text-green-700 font-medium px-3 py-1 whitespace-nowrap">Rs. {{ doc.fee_rs|floatformat:0 }}</span>
+      <div class="text-right whitespace-nowrap">
+        <span class="rounded-full bg-green-50 text-green-700 font-medium px-3 py-1">Rs. {{ doc.fee_rs|floatformat:0 }}</span>
+        <p class="text-xs text-gray-500 mt-1">our fee · pay on delivery</p>
+      </div>
     </div>
+
+    {% if doc.includes.exists %}
+      <div class="mt-6 rounded-lg border border-purple-200 bg-purple-50 p-4">
+        <h2 class="font-semibold text-purple-900 text-sm">This bundle includes</h2>
+        <ul class="mt-2 flex flex-wrap gap-2">
+          {% for inc in doc.includes.all %}
+            <li class="rounded bg-white border border-purple-200 text-purple-800 text-sm px-2.5 py-1">{{ inc.name }}</li>
+          {% endfor %}
+        </ul>
+        <p class="text-xs text-purple-700 mt-2">One PU application, one pickup receipt, one delivery.</p>
+      </div>
+    {% endif %}
 
     {% if doc.required_docs %}
       <div class="mt-6">
@@ -43,9 +58,10 @@
     <h2 class="font-semibold mb-4">Details</h2>
     <dl class="text-sm space-y-3">
       <div class="flex justify-between">
-        <dt class="text-gray-500">Fee</dt>
+        <dt class="text-gray-500">Our service fee</dt>
         <dd class="font-medium">Rs. {{ doc.fee_rs|floatformat:0 }}</dd>
       </div>
+      <div class="text-xs text-gray-500 -mt-1">Paid in cash on delivery. The PU fee is paid separately at services.pu.edu.np.</div>
       <div class="flex justify-between">
         <dt class="text-gray-500">Processing time</dt>
         <dd class="font-medium">~{{ doc.processing_days }} days</dd>

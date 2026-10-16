@@ -7,6 +7,8 @@ from colleges.models import College
 
 User = get_user_model()
 
+SERVICE_FEE_RS = 500
+
 COLLEGES = [
     {
         "name": "Pokhara University Central Campus",
@@ -32,65 +34,96 @@ DOCUMENT_TYPES = [
     {
         "name": "Transcript",
         "slug": "transcript",
-        "fee_rs": 1500,
-        "description": "Official academic transcript",
+        "description": "Official academic transcript, collected from PU and delivered to you.",
         "required_docs": ["CITIZENSHIP", "MARKSHEET"],
         "processing_days": 7,
     },
     {
         "name": "Provisional Certificate",
         "slug": "provisional",
-        "fee_rs": 1000,
-        "description": "Provisional pass certificate",
+        "description": "Provisional pass certificate.",
         "required_docs": ["CITIZENSHIP", "MARKSHEET"],
         "processing_days": 5,
     },
     {
         "name": "Migration Certificate",
         "slug": "migration",
-        "fee_rs": 1200,
-        "description": "For transfer to other university",
+        "description": "For transfer to other university.",
         "required_docs": ["CITIZENSHIP", "REG_CARD"],
         "processing_days": 7,
     },
     {
         "name": "Character Certificate",
         "slug": "character",
-        "fee_rs": 800,
-        "description": "Character certificate",
+        "description": "Character certificate.",
         "required_docs": ["CITIZENSHIP"],
         "processing_days": 5,
     },
     {
         "name": "Original Degree Certificate",
         "slug": "degree-original",
-        "fee_rs": 3000,
-        "description": "Convocation degree",
+        "description": "Convocation degree.",
         "required_docs": ["CITIZENSHIP", "TRANSCRIPT", "PROVISIONAL"],
         "processing_days": 30,
     },
     {
         "name": "Correction / Reprint",
         "slug": "correction-reprint",
-        "fee_rs": 2000,
-        "description": "Name/DOB correction or reprint",
+        "description": "Name/DOB correction or reprint.",
         "required_docs": ["CITIZENSHIP", "OLD_CERT"],
         "processing_days": 14,
     },
 ]
 
+TMP_BUNDLE = {
+    "name": "TMP Bundle (Transcript + Migration + Provisional)",
+    "slug": "tmp-bundle",
+    "description": (
+        "Order Transcript, Migration and Provisional together in a single PU "
+        "application (TMP) — one pickup receipt, one delivery."
+    ),
+    "required_docs": ["CITIZENSHIP", "MARKSHEET", "REG_CARD"],
+    "processing_days": 7,
+    "includes": ["transcript", "migration", "provisional"],
+}
+
 
 class Command(BaseCommand):
-    help = "Seed colleges, document types, and an admin user"
+    help = "Seed colleges, document types (flat service fee), TMP bundle, and an admin user"
 
     def handle(self, *args, **options):
         for c in COLLEGES:
-            College.objects.get_or_create(code=c["code"], defaults=c)
+            College.objects.update_or_create(code=c["code"], defaults=c)
         self.stdout.write(self.style.SUCCESS(f"Colleges: {College.objects.count()}"))
 
         for d in DOCUMENT_TYPES:
-            DocumentType.objects.get_or_create(slug=d["slug"], defaults=d)
-        self.stdout.write(self.style.SUCCESS(f"Document types: {DocumentType.objects.count()}"))
+            DocumentType.objects.update_or_create(
+                slug=d["slug"],
+                defaults={**d, "fee_rs": SERVICE_FEE_RS, "is_active": True},
+            )
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Document types: {DocumentType.objects.filter(slug__in=[d['slug'] for d in DOCUMENT_TYPES]).count()} "
+                f"(service fee Rs. {SERVICE_FEE_RS})"
+            )
+        )
+
+        bundle_defaults = {
+            k: v for k, v in TMP_BUNDLE.items() if k != "includes"
+        }
+        bundle_defaults.update({"fee_rs": SERVICE_FEE_RS, "is_active": True})
+        bundle, _ = DocumentType.objects.update_or_create(
+            slug=TMP_BUNDLE["slug"], defaults=bundle_defaults
+        )
+        components = DocumentType.objects.filter(
+            slug__in=TMP_BUNDLE["includes"]
+        ).exclude(pk=bundle.pk)
+        bundle.includes.set(components)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"TMP bundle: {bundle.name} (includes: {', '.join(c.name for c in bundle.includes.all())})"
+            )
+        )
 
         if not User.objects.filter(email="admin@pu.edu.np").exists():
             User.objects.create_superuser(

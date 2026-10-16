@@ -26,8 +26,9 @@
           <td class="px-4 py-3 font-medium">{{ app.document_type.name }}</td>
           <td class="px-4 py-3">
             <span class="rounded-full text-xs px-2.5 py-1
-              {% if app.status == 'DELIVERED' or app.status == 'APPROVED' or app.status == 'PAID' %}bg-green-50 text-green-700
+              {% if app.status == 'DELIVERED' %}bg-green-50 text-green-700
               {% elif app.status == 'REJECTED' or app.status == 'CANCELLED' %}bg-red-50 text-red-700
+              {% elif app.status == 'DISPATCHED' %}bg-blue-50 text-blue-700
               {% else %}bg-yellow-50 text-yellow-700{% endif %}">{{ app.get_status_display }}</span>
           </td>
           <td class="px-4 py-3 text-gray-500">{{ app.created_at|date:"M j, Y" }}</td>

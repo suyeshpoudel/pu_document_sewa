@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Application, ApplicationFile, Payment, Shipment
+from .models import Application, ApplicationFile, Shipment
 
 
 class ApplicationFileInline(admin.TabularInline):
@@ -8,17 +8,12 @@ class ApplicationFileInline(admin.TabularInline):
     extra = 0
 
 
-class PaymentInline(admin.TabularInline):
-    model = Payment
-    extra = 0
-
-
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ["id", "full_name", "document_type", "status", "created_at"]
+    list_display = ["id", "full_name", "document_type", "pu_reference_no", "status", "created_at"]
     list_filter = ["status", "document_type"]
-    search_fields = ["full_name", "symbol_no", "reg_no", "tracking_no"]
-    inlines = [ApplicationFileInline, PaymentInline]
+    search_fields = ["full_name", "pu_reference_no", "phone", "student__email"]
+    inlines = [ApplicationFileInline]
 
 
 @admin.register(Shipment)

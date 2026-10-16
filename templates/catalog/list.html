@@ -6,7 +6,7 @@
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold">University Documents</h1>
-    <p class="text-gray-600 mt-1">Apply online and get your documents delivered to your doorstep.</p>
+    <p class="text-gray-600 mt-1">Apply on services.pu.edu.np, upload your pickup receipt — we collect and deliver to your doorstep for a flat fee, paid on delivery.</p>
   </div>
   {% if user.is_authenticated %}
     <a href="{% url 'apply' %}" class="rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">New Application</a>
@@ -20,8 +20,11 @@
         <h2 class="font-semibold text-lg"><a href="{% url 'document_detail' doc.slug %}" class="hover:text-blue-600">{{ doc.name }}</a></h2>
         <span class="rounded-full bg-green-50 text-green-700 text-sm font-medium px-2.5 py-0.5">Rs. {{ doc.fee_rs|floatformat:0 }}</span>
       </div>
+      {% if doc.includes.exists %}
+        <span class="mt-1 w-fit rounded bg-purple-50 text-purple-700 text-xs font-medium px-2 py-0.5">Bundle · {{ doc.includes.count }} certificates</span>
+      {% endif %}
       <p class="text-gray-600 text-sm mt-2 flex-1">{{ doc.description }}</p>
-      <p class="text-xs text-gray-500 mt-3">Processing: ~{{ doc.processing_days }} days</p>
+      <p class="text-xs text-gray-500 mt-3">Processing: ~{{ doc.processing_days }} days · our fee, pay on delivery</p>
       {% if doc.required_docs %}
         <div class="mt-2 flex flex-wrap gap-1">
           {% for r in doc.required_docs %}

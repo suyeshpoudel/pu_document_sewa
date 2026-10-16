@@ -9,23 +9,14 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import Role
 
-from .forms import ApplicationFileForm, ApplicationForm, StatusUpdateForm
-from .models import Application, ApplicationFile, ApplicationStatus
+from .forms import ApplicationForm, StatusUpdateForm
+from .models import Application, ApplicationStatus, Shipment
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         u = self.request.user
         return u.is_authenticated and u.role in (Role.ADMIN, Role.COLLEGE_STAFF)
-
-
-def _handle_files(application, file_type, files):
-    if not files:
-        return
-    if not isinstance(files, (list, tuple)):
-        files = [files]
-    for f in files:
-        ApplicationFile.objects.create(application=application, file_type=file_type, file=f)
 
 
 class ApplyView(LoginRequiredMixin, View):
@@ -36,36 +27,19 @@ class ApplyView(LoginRequiredMixin, View):
         if document_type_id:
             initial["document_type"] = document_type_id
         form = ApplicationForm(initial=initial)
-        file_form = ApplicationFileForm()
-        return render(
-            request,
-            self.template_name,
-            {"form": form, "file_form": file_form},
-        )
+        return render(request, self.template_name, {"form": form})
 
     def post(self, request, document_type_id=None):
-        form = ApplicationForm(request.POST)
-        file_form = ApplicationFileForm(request.POST, request.FILES)
-        if form.is_valid() and file_form.is_valid():
+        form = ApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
             with transaction.atomic():
                 application = form.save(commit=False)
                 application.student = request.user
                 application.status = ApplicationStatus.SUBMITTED
                 application.save()
-                _handle_files(
-                    application,
-                    file_form.cleaned_data["file_type"],
-                    file_form.cleaned_data.get("files"),
-                )
-            messages.success(request, "Application submitted successfully.")
+            messages.success(request, "Application submitted. We'll verify your receipt shortly.")
             return redirect("application_detail", pk=application.pk)
-        elif form.is_valid() and not file_form.is_valid():
-            messages.error(request, "Please fix the errors in the uploaded files.")
-        return render(
-            request,
-            self.template_name,
-            {"form": form, "file_form": file_form},
-        )
+        return render(request, self.template_name, {"form": form})
 
 
 class MyApplicationsView(LoginRequiredMixin, ListView):
@@ -85,7 +59,7 @@ class ApplicationDetailView(LoginRequiredMixin, View):
         application = get_object_or_404(
             Application.objects.select_related(
                 "document_type", "college", "student", "shipment"
-            ).prefetch_related("files", "payments"),
+            ).prefetch_related("files"),
             pk=pk,
         )
         if request.user.role != Role.ADMIN and application.student_id != request.user.id:
@@ -98,11 +72,7 @@ class ApplicationDetailView(LoginRequiredMixin, View):
 @require_POST
 def cancel_application(request, pk):
     application = get_object_or_404(Application, pk=pk, student=request.user)
-    if application.status in (
-        ApplicationStatus.SUBMITTED,
-        ApplicationStatus.UNDER_REVIEW,
-        ApplicationStatus.DRAFT,
-    ):
+    if application.cancelable:
         application.status = ApplicationStatus.CANCELLED
         application.save(update_fields=["status", "updated_at"])
         messages.success(request, "Application cancelled.")
@@ -145,7 +115,16 @@ class AdminStatusUpdateView(LoginRequiredMixin, StaffRequiredMixin, View):
         application = get_object_or_404(Application, pk=pk)
         form = StatusUpdateForm(request.POST, instance=application)
         if form.is_valid():
-            form.save()
+            with transaction.atomic():
+                application = form.save()
+                if application.status == ApplicationStatus.DISPATCHED:
+                    Shipment.objects.update_or_create(
+                        application=application,
+                        defaults={
+                            **form.shipment_data(),
+                            "cod_amount_rs": application.document_type.fee_rs,
+                        },
+                    )
             messages.success(request, f"Application #{application.pk} updated.")
             return redirect("admin_application_detail", pk=application.pk)
         return render(
@@ -160,7 +139,7 @@ class AdminApplicationDetailView(LoginRequiredMixin, StaffRequiredMixin, View):
         application = get_object_or_404(
             Application.objects.select_related(
                 "document_type", "college", "student", "shipment"
-            ).prefetch_related("files", "payments"),
+            ).prefetch_related("files"),
             pk=pk,
         )
         return render(request, self.template_name, {"application": application})

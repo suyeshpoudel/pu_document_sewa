@@ -8,24 +8,50 @@
     <div>
       <h1 class="text-2xl font-bold">Application #{{ application.pk }}</h1>
       <p class="text-gray-600">{{ application.document_type.name }}</p>
+      {% if application.document_type.includes.exists %}
+        <p class="text-sm text-purple-700 mt-1">Bundle: {{ application.document_type.includes.all|join:", " }}</p>
+      {% endif %}
     </div>
     <span class="rounded-full text-sm px-3 py-1
-      {% if application.status == 'DELIVERED' or application.status == 'APPROVED' or application.status == 'PAID' %}bg-green-50 text-green-700
+      {% if application.status == 'DELIVERED' %}bg-green-50 text-green-700
       {% elif application.status == 'REJECTED' or application.status == 'CANCELLED' %}bg-red-50 text-red-700
+      {% elif application.status == 'DISPATCHED' %}bg-blue-50 text-blue-700
       {% else %}bg-yellow-50 text-yellow-700{% endif %}">{{ application.get_status_display }}</span>
   </div>
 
   <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold mb-4">Academic details</h2>
+    <h2 class="font-semibold mb-4">Progress</h2>
+    <ol class="flex gap-2">
+      {% for step in application.timeline %}
+        <li class="flex-1">
+          <div class="h-2 rounded-full {% if step.reached %}bg-blue-600{% else %}bg-gray-200{% endif %}"></div>
+          <p class="text-xs mt-1.5 {% if step.current %}text-blue-700 font-semibold{% elif step.reached %}text-gray-700{% else %}text-gray-400{% endif %}">{{ step.label }}</p>
+        </li>
+      {% endfor %}
+    </ol>
+    {% if application.status == 'REJECTED' or application.status == 'CANCELLED' %}
+      <div class="mt-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
+        This application was {{ application.get_status_display|lower }}{% if application.admin_remark %}: {{ application.admin_remark }}{% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold mb-4">Application details</h2>
     <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
       <div><dt class="text-gray-500">Full name</dt><dd class="font-medium">{{ application.full_name }}</dd></div>
-      <div><dt class="text-gray-500">Program</dt><dd class="font-medium">{{ application.program }}</dd></div>
-      <div><dt class="text-gray-500">Symbol No.</dt><dd class="font-medium">{{ application.symbol_no }}</dd></div>
-      <div><dt class="text-gray-500">Reg No.</dt><dd class="font-medium">{{ application.reg_no }}</dd></div>
-      <div><dt class="text-gray-500">Passed year</dt><dd class="font-medium">{{ application.passed_year|default:"—" }}</dd></div>
-      <div><dt class="text-gray-500">Copies</dt><dd class="font-medium">{{ application.copies }}</dd></div>
-      <div><dt class="text-gray-500">College</dt><dd class="font-medium">{{ application.college|default:"—" }}</dd></div>
       <div><dt class="text-gray-500">Phone</dt><dd class="font-medium">{{ application.phone }}</dd></div>
+      <div><dt class="text-gray-500">PU reference no.</dt><dd class="font-medium font-mono">{{ application.pu_reference_no }}</dd></div>
+      <div><dt class="text-gray-500">College</dt><dd class="font-medium">{{ application.college|default:"—" }}</dd></div>
+      <div><dt class="text-gray-500">Our service fee</dt><dd class="font-medium">Rs. {{ application.document_type.fee_rs|floatformat:0 }} <span class="text-gray-500 font-normal">— paid on delivery</span></dd></div>
+      <div class="col-span-2">
+        <dt class="text-gray-500">Pickup receipt</dt>
+        <dd class="mt-1">
+          {% if application.receipt %}
+            <a href="{{ application.receipt.url }}" target="_blank" rel="noopener" class="inline-block text-blue-600 hover:underline">View pickup receipt</a>
+          {% else %}<span class="text-gray-400">Not provided</span>{% endif %}
+        </dd>
+      </div>
     </dl>
   </div>
 
@@ -39,8 +65,27 @@
     {% if application.delivery_notes %}<p class="text-sm text-gray-500 mt-2">{{ application.delivery_notes }}</p>{% endif %}
   </div>
 
+  {% if application.shipment %}
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="font-semibold mb-4">Delivery</h2>
+      <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+        <div><dt class="text-gray-500">Courier</dt><dd class="font-medium">{{ application.shipment.display_courier }}</dd></div>
+        <div><dt class="text-gray-500">Tracking ID</dt><dd class="font-medium font-mono">{{ application.shipment.tracking_id|default:"—" }}</dd></div>
+        {% if application.shipment.cod_amount_rs %}
+          <div><dt class="text-gray-500">Cash on delivery</dt><dd class="font-semibold">Rs. {{ application.shipment.cod_amount_rs|floatformat:0 }} <span class="text-gray-500 font-normal">— pay the courier on delivery</span></dd></div>
+        {% endif %}
+      </dl>
+      {% if application.shipment.tracking_url %}
+        <a href="{{ application.shipment.tracking_url }}" target="_blank" rel="noopener"
+           class="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">
+          Track on {{ application.shipment.display_courier }}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+
   <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold mb-4">Uploaded files</h2>
+    <h2 class="font-semibold mb-4">Attached files</h2>
     <ul class="divide-y divide-gray-100 text-sm">
       {% for f in application.files.all %}
         <li class="py-2 flex items-center justify-between">
@@ -53,15 +98,14 @@
     </ul>
   </div>
 
-  {% if application.admin_remark or application.tracking_no %}
+  {% if application.status != 'REJECTED' and application.status != 'CANCELLED' and application.admin_remark %}
     <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 class="font-semibold mb-4">Admin notes</h2>
-      {% if application.admin_remark %}<p class="text-sm text-gray-800">{{ application.admin_remark }}</p>{% endif %}
-      {% if application.tracking_no %}<p class="text-sm text-gray-600 mt-2">Tracking no: <span class="font-mono">{{ application.tracking_no }}</span></p>{% endif %}
+      <h2 class="font-semibold mb-2">Notes from our team</h2>
+      <p class="text-sm text-gray-800">{{ application.admin_remark }}</p>
     </div>
   {% endif %}
 
-  {% if application.status == 'SUBMITTED' or application.status == 'UNDER_REVIEW' or application.status == 'DRAFT' %}
+  {% if application.cancelable %}
     <form method="post" action="{% url 'cancel_application' application.pk %}" onsubmit="return confirm('Cancel this application?');">
       {% csrf_token %}
       <button class="rounded-lg border border-red-300 text-red-600 px-4 py-2 text-sm hover:bg-red-50">Cancel application</button>

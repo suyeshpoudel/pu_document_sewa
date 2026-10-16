@@ -5,19 +5,25 @@
 {% block content %}
 <div class="max-w-lg mx-auto">
   <h1 class="text-2xl font-bold mb-2">Update Application #{{ application.pk }}</h1>
-  <p class="text-gray-600 mb-6">{{ application.full_name }} — {{ application.document_type.name }}</p>
-  <form method="post" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-      <div class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{{ form.non_field_errors }}</div>
-    {% endif %}
-    {% for field in form %}
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% for error in field.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-    {% endfor %}
+    <p class="text-gray-600 mb-6">{{ application.full_name }} — {{ application.document_type.name }}</p>
+    <p class="text-xs text-gray-500 mb-4">
+      Suggested flow: Submitted → Pickup Receipt Verified → Collecting from PU → Dispatched → Delivered.
+      Courier and tracking ID are saved when status is set to <strong>Dispatched</strong>,
+      and the cash-on-delivery amount (our service fee) is recorded automatically.
+    </p>
+    <form method="post" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{{ form.non_field_errors }}</div>
+      {% endif %}
+      {% for field in form %}
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
     <div class="flex gap-3">
       <button class="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Save</button>
       <a href="{% url 'admin_application_detail' application.pk %}" class="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100">Cancel</a>

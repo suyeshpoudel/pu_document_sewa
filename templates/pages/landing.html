@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}PU Document Sewa — Pokhara University documents, delivered{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 text-white px-6 py-14 sm:py-20 text-center">
+  <p class="text-blue-200 text-sm font-medium tracking-wide uppercase mb-3">For Pokhara University students</p>
+  <h1 class="text-3xl sm:text-5xl font-bold leading-tight max-w-3xl mx-auto">
+    Get your PU documents without the queue
+  </h1>
+  <p class="mt-4 text-blue-100 max-w-2xl mx-auto text-base sm:text-lg">
+    Apply on the official PU portal, upload your pickup receipt here — we collect your
+    certificates from the university and deliver them to your doorstep for a flat
+    Rs. {{ service_fee|default:500 }} on delivery.
+  </p>
+  <div class="mt-8 flex flex-wrap justify-center gap-3">
+    {% if user.is_authenticated %}
+      <a href="{% url 'apply' %}" class="rounded-lg bg-white px-6 py-3 text-blue-800 font-semibold hover:bg-blue-50">Start an application</a>
+    {% else %}
+      <a href="{% url 'register' %}" class="rounded-lg bg-white px-6 py-3 text-blue-800 font-semibold hover:bg-blue-50">Get started</a>
+    {% endif %}
+    <a href="{% url 'document_list' %}" class="rounded-lg border border-blue-300 px-6 py-3 font-semibold hover:bg-blue-800">Browse documents</a>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="mt-14">
+  <h2 class="text-2xl font-bold text-center">How it works</h2>
+  <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div class="h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center">1</div>
+      <h3 class="font-semibold mt-4">Apply at the PU portal</h3>
+      <p class="text-sm text-gray-600 mt-2">
+        Apply and pay the PU fee at
+        <a href="https://services.pu.edu.np" target="_blank" rel="noopener" class="text-blue-600 hover:underline">services.pu.edu.np</a>
+        (single certificate or the TMP bundle). Your college then processes the application.
+      </p>
+    </div>
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div class="h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center">2</div>
+      <h3 class="font-semibold mt-4">Get your pickup receipt</h3>
+      <p class="text-sm text-gray-600 mt-2">
+        Once processing is done, a pickup receipt is generated on your PU application
+        detail page — that's what you upload here.
+      </p>
+    </div>
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div class="h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center">3</div>
+      <h3 class="font-semibold mt-4">We collect from PU</h3>
+      <p class="text-sm text-gray-600 mt-2">
+        Upload the pickup receipt with your delivery address — our team collects your
+        certificates directly from the university.
+      </p>
+    </div>
+    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div class="h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center">4</div>
+      <h3 class="font-semibold mt-4">Delivered to your door</h3>
+      <p class="text-sm text-gray-600 mt-2">
+        Delivered nationwide through trusted couriers like Nepal Can Move, tracked every
+        step of the way. You pay our flat service fee in cash on delivery.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="mt-14">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold">Documents we deliver</h2>
+      <p class="text-sm text-gray-600 mt-1">Flat Rs. {{ service_fee|default:500 }} pickup &amp; delivery fee per application — paid in cash on delivery. PU fees are paid at services.pu.edu.np.</p>
+    </div>
+    <a href="{% url 'document_list' %}" class="text-blue-600 text-sm hover:underline">View all →</a>
+  </div>
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for doc in document_types %}
+      <a href="{% url 'document_detail' doc.slug %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300 hover:shadow transition">
+        <div class="flex items-start justify-between">
+          <h3 class="font-semibold">{{ doc.name }}</h3>
+          <span class="rounded-full bg-green-50 text-green-700 text-sm font-medium px-2.5 py-0.5">Rs. {{ doc.fee_rs|floatformat:0 }}</span>
+        </div>
+        <p class="text-gray-600 text-sm mt-2">{{ doc.description }}</p>
+        <p class="text-xs text-gray-500 mt-3">Processing: ~{{ doc.processing_days }} days · pay on delivery</p>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Why us -->
+<section class="mt-14 rounded-2xl bg-gray-100 px-6 py-12">
+  <h2 class="text-2xl font-bold text-center">Why students use us</h2>
+  <div class="mt-8 grid gap-6 sm:grid-cols-3">
+    <div class="text-center">
+      <div class="mx-auto h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+      </div>
+      <h3 class="font-semibold mt-3">No repeated visits</h3>
+      <p class="text-sm text-gray-600 mt-1">Skip the trips to campus. We handle collection for you.</p>
+    </div>
+    <div class="text-center">
+      <div class="mx-auto h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="6" width="14" height="11" rx="1"/><path d="M15 9h4l3 3v5h-7"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      </div>
+      <h3 class="font-semibold mt-3">Doorstep delivery</h3>
+      <p class="text-sm text-gray-600 mt-1">Anywhere in Nepal through reliable courier partners.</p>
+    </div>
+    <div class="text-center">
+      <div class="mx-auto h-12 w-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <h3 class="font-semibold mt-3">Trackable</h3>
+      <p class="text-sm text-gray-600 mt-1">Follow your application from receipt to delivery.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="mt-14 max-w-3xl mx-auto w-full">
+  <h2 class="text-2xl font-bold text-center">Frequently asked questions</h2>
+  <div class="mt-6 space-y-3">
+    <details class="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <summary class="font-medium cursor-pointer">Where do I apply and pay?</summary>
+      <p class="text-sm text-gray-600 mt-2">
+        On the official Pokhara University student portal at
+        <a href="https://services.pu.edu.np" target="_blank" rel="noopener" class="text-blue-600 hover:underline">services.pu.edu.np</a>.
+        This site only collects your receipt and delivery details.
+      </p>
+    </details>
+    <details class="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <summary class="font-medium cursor-pointer">What receipt do I upload here?</summary>
+      <p class="text-sm text-gray-600 mt-2">
+        The <strong>pickup receipt</strong> that is generated on your services.pu.edu.np
+        application detail page once your college finishes processing — not the payment
+        receipt. Include your PU application reference number as well.
+      </p>
+    </details>
+    <details class="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <summary class="font-medium cursor-pointer">How do I pay your fee?</summary>
+      <p class="text-sm text-gray-600 mt-2">
+        Our flat pickup &amp; delivery fee (Rs. {{ service_fee|default:500 }}) is collected
+        in cash when your documents are delivered to your door. The PU fee itself is paid
+        at services.pu.edu.np.
+      </p>
+    </details>
+    <details class="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <summary class="font-medium cursor-pointer">Can I order Transcript + Migration + Provisional together?</summary>
+      <p class="text-sm text-gray-600 mt-2">
+        Yes — that's the TMP bundle on the PU portal (one application, one pickup receipt).
+        Select the TMP bundle here and we'll collect all three for a single delivery fee.
+      </p>
+    </details>
+    <details class="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <summary class="font-medium cursor-pointer">How do I track my delivery?</summary>
+      <p class="text-sm text-gray-600 mt-2">
+        Once dispatched, your application page shows the courier and tracking ID with a direct
+        link to the courier's tracking page (e.g. Nepal Can Move).
+      </p>
+    </details>
+    <details class="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <summary class="font-medium cursor-pointer">How long does it take?</summary>
+      <p class="text-sm text-gray-600 mt-2">
+        Collection usually starts right after your receipt is verified; delivery time then depends
+        on the document's processing time at PU and your location. Track your application page for live status.
+      </p>
+    </details>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="mt-14 rounded-2xl bg-blue-700 text-white px-6 py-10 text-center">
+  <h2 class="text-2xl font-bold">Ready to get your documents?</h2>
+  <p class="mt-2 text-blue-100">Create an account and upload your PU receipt in under two minutes.</p>
+  <div class="mt-6">
+    {% if user.is_authenticated %}
+      <a href="{% url 'apply' %}" class="rounded-lg bg-white px-6 py-3 text-blue-800 font-semibold hover:bg-blue-50">Start an application</a>
+    {% else %}
+      <a href="{% url 'register' %}" class="rounded-lg bg-white px-6 py-3 text-blue-800 font-semibold hover:bg-blue-50">Create free account</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

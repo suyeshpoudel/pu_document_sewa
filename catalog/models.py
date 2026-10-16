@@ -1,14 +1,22 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
 class DocumentType(models.Model):
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
-    fee_rs = models.PositiveIntegerField()
+    fee_rs = models.PositiveIntegerField(verbose_name="Our service fee (Rs.)")
     description = models.TextField(blank=True)
     required_docs = models.JSONField(default=list)
     processing_days = models.PositiveIntegerField(default=7)
     is_active = models.BooleanField(default=True)
+    includes = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        blank=True,
+        related_name="bundles",
+        help_text="For bundles: the component certificates included (e.g. TMP = Transcript + Migration + Provisional).",
+    )
 
     class Meta:
         verbose_name_plural = "document types"
@@ -16,3 +24,8 @@ class DocumentType(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        super().clean()
+        if self.pk and self.includes.filter(pk=self.pk).exists():
+            raise ValidationError({"includes": "A document cannot include itself."})

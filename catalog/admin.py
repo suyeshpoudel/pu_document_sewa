@@ -8,3 +8,4 @@ class DocumentTypeAdmin(admin.ModelAdmin):
     list_display = ["name", "slug", "fee_rs", "processing_days", "is_active"]
     list_filter = ["is_active"]
     prepopulated_fields = {"slug": ("name",)}
+    filter_horizontal = ["includes"]

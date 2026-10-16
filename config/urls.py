@@ -3,11 +3,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from catalog.views import document_list
+from pages.views import landing
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", document_list, name="home"),
+    path("", landing, name="home"),
     path("accounts/", include("accounts.urls")),
     path("colleges/", include("colleges.urls")),
     path("documents/", include("catalog.urls")),
