@@ -46,14 +46,17 @@ class ApplicationForm(forms.ModelForm):
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("widget", forms.ClearableFileInput(attrs={"allow_multiple_selected": True}))
+        kwargs.setdefault("widget", forms.ClearableFileInput())
         super().__init__(*args, **kwargs)
+        self.widget.allow_multiple_selected = True
+        self.widget.attrs.setdefault("multiple", True)
 
     def clean(self, data, initial=None):
-        single = super().clean(data, initial)
-        if isinstance(single, (list, tuple)):
-            return single
-        return data
+        if isinstance(data, (list, tuple)):
+            if not data:
+                return super().clean(None, initial)
+            return [super().clean(item, initial) for item in data]
+        return super().clean(data, initial)
 
 
 class ApplicationFileForm(forms.Form):

@@ -20,7 +20,11 @@ class StaffRequiredMixin(UserPassesTestMixin):
 
 
 def _handle_files(application, file_type, files):
-    for f in files or []:
+    if not files:
+        return
+    if not isinstance(files, (list, tuple)):
+        files = [files]
+    for f in files:
         ApplicationFile.objects.create(application=application, file_type=file_type, file=f)
 
 
