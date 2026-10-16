@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, RedirectView
 from django.views.decorators.http import require_POST
 
 from accounts.models import Role
@@ -81,24 +81,14 @@ def cancel_application(request, pk):
     return redirect("application_detail", pk=pk)
 
 
-class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    template_name = "applications/dashboard.html"
-    context_object_name = "applications"
+class AdminDashboardView(LoginRequiredMixin, AdminRequiredMixin, RedirectView):
+    pattern_name = "office_applications"
+    permanent = False
 
-    def get_queryset(self):
-        qs = Application.objects.select_related(
-            "document_type", "student", "college"
-        ).prefetch_related("files")
-        status = self.request.GET.get("status")
-        if status and status in ApplicationStatus.values:
-            qs = qs.filter(status=status)
-        return qs
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["statuses"] = ApplicationStatus.choices
-        ctx["current_status"] = self.request.GET.get("status", "")
-        return ctx
+    def get_redirect_url(self, *args, **kwargs):
+        query = self.request.META.get("QUERY_STRING", "")
+        url = super().get_redirect_url(*args, **kwargs)
+        return f"{url}?{query}" if query else url
 
 
 class AdminStatusUpdateView(LoginRequiredMixin, AdminRequiredMixin, View):
