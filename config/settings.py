@@ -4,6 +4,7 @@ Django settings for config project.
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 from dotenv import load_dotenv
 
@@ -64,16 +65,51 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {
-    "default": {
+def _database_from_url(url):
+    """
+    Build a Django database config from a URL such as
+    postgresql://user:pass@host:5432/dbname?sslmode=require
+    """
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+
+    config = {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "pu_document_sewa"),
-        "USER": os.getenv("DB_USER", "suyeshpoudel"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "NAME": unquote(parsed.path.lstrip("/")),
+        "USER": unquote(parsed.username or ""),
+        "PASSWORD": unquote(parsed.password or ""),
+        "HOST": parsed.hostname or "",
+        "PORT": str(parsed.port or ""),
     }
-}
+
+    options = {}
+    for key in ("sslmode", "channel_binding", "connect_timeout", "application_name"):
+        value = query.get(key, [None])[0]
+        if value:
+            options[key] = value
+
+    if options:
+        config["OPTIONS"] = options
+
+    return config
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {"default": _database_from_url(DATABASE_URL)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", "pu_document_sewa"),
+            "USER": os.getenv("DB_USER", "suyeshpoudel"),
+            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+            "OPTIONS": {"sslmode": os.getenv("DB_SSLMODE", "prefer")},
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
