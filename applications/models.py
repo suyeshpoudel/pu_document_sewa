@@ -1,5 +1,8 @@
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
+
+from config.pricing import MINIMUM_SERVICE_FEE_RS
 
 
 class ApplicationStatus(models.TextChoices):
@@ -10,6 +13,11 @@ class ApplicationStatus(models.TextChoices):
     DELIVERED = "DELIVERED", "Delivered"
     REJECTED = "REJECTED", "Rejected"
     CANCELLED = "CANCELLED", "Cancelled"
+
+
+class Urgency(models.TextChoices):
+    STANDARD = "STANDARD", "Standard"
+    URGENT = "URGENT", "Urgent"
 
 
 class Courier(models.TextChoices):
@@ -41,6 +49,15 @@ class Application(models.Model):
     delivery_street = models.CharField(max_length=255, blank=True)
     delivery_notes = models.TextField(blank=True)
 
+    urgency = models.CharField(
+        max_length=20, choices=Urgency.choices, default=Urgency.STANDARD
+    )
+    service_fee_rs = models.PositiveIntegerField(
+        default=MINIMUM_SERVICE_FEE_RS,
+        validators=[MinValueValidator(MINIMUM_SERVICE_FEE_RS)],
+        help_text="Final pickup & delivery fee confirmed by staff.",
+    )
+
     status = models.CharField(
         max_length=20, choices=ApplicationStatus.choices, default=ApplicationStatus.SUBMITTED
     )
@@ -58,6 +75,15 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.full_name} — {self.document_type.name} (#{self.pk})"
+
+    @property
+    def fee_confirmed(self):
+        return self.status in (
+            ApplicationStatus.RECEIPT_VERIFIED,
+            ApplicationStatus.COLLECTING,
+            ApplicationStatus.DISPATCHED,
+            ApplicationStatus.DELIVERED,
+        )
 
     @property
     def cancelable(self):

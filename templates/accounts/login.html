@@ -1,25 +1,48 @@
 {% extends "base.html" %}
 
-{% block title %}Login — PU Document Sewa{% endblock %}
+{% block title %}Log in — PU Document Sewa{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto">
-  <h1 class="text-2xl font-bold mb-6">Login</h1>
-  <form method="post" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-      <div class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{{ form.non_field_errors }}</div>
-    {% endif %}
-    {% for field in form %}
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% for error in field.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
-      </div>
-    {% endfor %}
-    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-    <button class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Login</button>
-    <p class="text-sm text-gray-600 text-center">No account? <a href="{% url 'register' %}" class="text-blue-600 hover:underline">Register</a></p>
-  </form>
+<div class="shell auth-page">
+  <div class="auth-shell">
+    <aside class="auth-aside">
+      <p class="eyebrow eyebrow-light">Student account</p>
+      <h2 style="margin-top: 0.8rem;">Keep every document request in one place.</h2>
+      <p>Log in to submit a new application, check whether your pickup receipt has been verified, and follow your delivery through to your doorstep.</p>
+      <ul class="auth-points">
+        <li>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          See your application status at every stage
+        </li>
+        <li>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Access courier and tracking details
+        </li>
+        <li>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Submit new requests without re-entering your details
+        </li>
+      </ul>
+      <p class="auth-note">Applications are private to your account. Staff can view applications only to process and dispatch them.</p>
+    </aside>
+
+    <div class="auth-card">
+      <p class="eyebrow">Welcome back</p>
+      <h1 style="margin-top: 0.6rem;">Log in to your account</h1>
+      <p>Use the email address you registered with.</p>
+
+      <form method="post" class="auth-form" data-submit-once>
+        {% csrf_token %}
+        {% include "includes/_form_errors.html" %}
+        {% include "includes/_field.html" with field=form.username %}
+        {% include "includes/_field.html" with field=form.password %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Log in</button>
+      </form>
+
+      <p class="auth-switch">New here? <a href="{% url 'register' %}">Create a student account</a></p>
+      <p class="auth-switch" style="margin-top: 0.5rem;">Already applied at PU? <a href="{% url 'home' %}#how-it-works">See how pickup works</a></p>
+    </div>
+  </div>
 </div>
 {% endblock %}

@@ -1,23 +1,55 @@
 {% extends "base.html" %}
 
 {% block title %}Colleges — PU Document Sewa{% endblock %}
+{% block meta_description %}Pokhara University affiliated colleges supported by PU Document Sewa.{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Affiliated Colleges</h1>
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-  {% for college in colleges %}
-    <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div class="flex items-center justify-between">
-        <h2 class="font-semibold">{{ college.name }}</h2>
-        <span class="text-xs rounded bg-blue-50 text-blue-700 px-2 py-0.5">{{ college.code }}</span>
-      </div>
-      <p class="text-sm text-gray-600 mt-2">{{ college.address }}{% if college.address %}, {% endif %}{{ college.district }}</p>
-      {% if college.contact_phone %}
-        <p class="text-sm text-gray-500 mt-1">{{ college.contact_phone }}</p>
-      {% endif %}
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">College directory</p>
+      <h1>Affiliated colleges</h1>
+      <p>Colleges you can associate with when creating your account or submitting an application. If your college is not listed, you can still apply and leave the college field blank.</p>
     </div>
-  {% empty %}
-    <p class="text-gray-500">No colleges seeded yet.</p>
-  {% endfor %}
+    <a href="{% url 'document_list' %}" class="btn btn-secondary">Browse documents</a>
+  </div>
+
+  <div class="college-grid">
+    {% for college in colleges %}
+      <article class="college-card">
+        <div class="college-card-head">
+          <h2>{{ college.name }}</h2>
+          <span class="badge badge-brand">{{ college.code }}</span>
+        </div>
+        <div class="college-meta">
+          <span>
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ college.address }}{% if college.address and college.district %}, {% endif %}{{ college.district }}
+          </span>
+          {% if college.contact_phone %}
+            <span>
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2.1Z"/></svg>
+              {{ college.contact_phone }}
+            </span>
+          {% endif %}
+          {% if college.contact_email %}
+            <span>
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+              <a href="mailto:{{ college.contact_email }}" class="text-link">{{ college.contact_email }}</a>
+            </span>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <span class="empty-icon">
+          <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+        </span>
+        <h2>No colleges listed yet</h2>
+        <p>The college directory is being prepared. You can still submit an application and leave the college field blank.</p>
+        <a href="{% url 'apply' %}" class="btn btn-primary">Start an application</a>
+      </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

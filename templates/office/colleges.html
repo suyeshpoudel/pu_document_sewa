@@ -3,43 +3,55 @@
 {% block title %}Office: Colleges — PU Document Sewa{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-1">Colleges</h1>
-<p class="text-gray-600 mb-6">Colleges students can associate with when applying.</p>
-{% include "office/_subnav.html" %}
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">College directory</p>
+      <h1>Colleges</h1>
+      <p>Colleges students can associate with when registering or applying. {{ colleges|length }} college{{ colleges|length|pluralize }} listed.</p>
+    </div>
+    <a href="{% url 'office_college_create' %}" class="btn btn-primary">Add college</a>
+  </div>
 
-<div class="mb-4 text-right">
-  <a href="{% url 'office_college_create' %}" class="rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">Add college</a>
-</div>
+  {% include "office/_subnav.html" %}
 
-<div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-  <table class="min-w-full text-sm">
-    <thead class="bg-gray-50 text-gray-600 text-left">
-      <tr>
-        <th class="px-4 py-3">Name</th>
-        <th class="px-4 py-3">Code</th>
-        <th class="px-4 py-3">District</th>
-        <th class="px-4 py-3">Address</th>
-        <th class="px-4 py-3">Contact</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% for college in colleges %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 font-medium">{{ college.name }}</td>
-          <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ college.code }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ college.district }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ college.address|default:"—" }}</td>
-          <td class="px-4 py-3 text-gray-600 text-xs">{{ college.contact_email|default:"—" }}{% if college.contact_phone %} · {{ college.contact_phone }}{% endif %}</td>
-          <td class="px-4 py-3 text-right space-x-3 whitespace-nowrap">
-            <a href="{% url 'office_college_update' college.pk %}" class="text-blue-600 hover:underline">Edit</a>
-            <a href="{% url 'office_college_delete' college.pk %}" class="text-red-600 hover:underline">Delete</a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No colleges yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-card">
+    <div class="table-wrap">
+      <table class="data-table" style="min-width: 50rem;">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Code</th>
+            <th scope="col">District</th>
+            <th scope="col">Address</th>
+            <th scope="col">Contact</th>
+            <th scope="col"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for college in colleges %}
+            <tr>
+              <td class="strong">{{ college.name }}</td>
+              <td><span class="badge badge-brand">{{ college.code }}</span></td>
+              <td>{{ college.district }}</td>
+              <td>{{ college.address|default:"—" }}</td>
+              <td>
+                <div class="sub" style="font-size: 0.78rem;">{{ college.contact_email|default:"—" }}</div>
+                {% if college.contact_phone %}<div class="sub">{{ college.contact_phone }}</div>{% endif %}
+              </td>
+              <td>
+                <div class="actions">
+                  <a href="{% url 'office_college_update' college.pk %}">Edit</a>
+                  <a href="{% url 'office_college_delete' college.pk %}" class="danger">Delete</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="table-empty">No colleges yet. Add the first college to the directory.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% endblock %}

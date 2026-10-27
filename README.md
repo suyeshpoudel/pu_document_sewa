@@ -10,9 +10,11 @@ the student uploads that pickup receipt here with a delivery address. Staff veri
 collect the certificates from the university, and dispatch them through couriers
 (Nepal Can Move, etc.) with tracking shown back to the student.
 
-**Fees:** the catalog shows *our* flat pickup & delivery fee (seeded at Rs. 500,
-editable in Django admin), collected as **cash on delivery** by the courier. The PU
-fee is paid at services.pu.edu.np and never passes through this site.
+**Fees:** the catalog shows the *minimum* pickup & delivery fee per document (seeded
+at Rs. 500, editable in Django admin). The final fee is confirmed by staff after
+receipt verification and can vary by document, delivery location, and the student's
+chosen urgency. It is collected as **cash on delivery** by the courier. The PU fee is
+paid at services.pu.edu.np and never passes through this site.
 
 Replaces the original NestJS/Prisma API with a single Django project.
 
@@ -28,8 +30,8 @@ Replaces the original NestJS/Prisma API with a single Django project.
 (plus `Rejected` for invalid pickup receipts and `Cancelled` by the student).
 
 When staff mark an application **Dispatched** they record the courier
-(Nepal Can Move / Fatak / Other) and tracking ID; the cash-on-delivery amount
-(the document's service fee) is snapshotted onto the shipment automatically. The
+(Nepal Can Move / Fatak / Other) and tracking ID; the confirmed final service fee is
+snapshotted onto the shipment as the cash-on-delivery amount automatically. The
 student sees a "Track on Nepal Can Move" link to
 [portal.nepalcanmove.com/track](https://portal.nepalcanmove.com/track/) and the COD
 amount to pay the courier.
@@ -50,7 +52,7 @@ detail page.
 | `office` | Admin-only back office at `/office/` — document/bundle CRUD, college CRUD, all applications |
 | `accounts` | Custom user model (email login, roles: Student / Admin), register/login/profile |
 | `colleges` | College directory |
-| `catalog` | Document-type catalog: our service fee, bundles (`includes`), required documents |
+| `catalog` | Document-type catalog: minimum service fee, bundles (`includes`), required documents |
 | `applications` | Application workflow: pickup-receipt submission, staff pipeline, courier dispatch + COD |
 
 ## Setup
@@ -63,7 +65,7 @@ pip install -r requirements.txt
 cp .env.example .env   # then edit DB credentials / SECRET_KEY
 
 python manage.py migrate
-python manage.py seed   # optional: 3 colleges, 6 documents + TMP bundle (Rs. 500 fee), admin user
+python manage.py seed   # optional: 3 colleges, 6 documents + TMP bundle (Rs. 500 minimum fee), admin user
 python manage.py runserver
 ```
 

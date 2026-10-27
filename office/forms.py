@@ -3,11 +3,9 @@ from django.utils.text import slugify
 
 from catalog.models import DocumentType
 from colleges.models import College
+from config.pricing import MINIMUM_SERVICE_FEE_RS
 
-INPUT_CLS = (
-    "w-full rounded-lg border border-gray-300 px-3 py-2 "
-    "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-)
+INPUT_CLS = "input"
 
 
 class OfficeDocumentForm(forms.ModelForm):
@@ -46,9 +44,15 @@ class OfficeDocumentForm(forms.ModelForm):
         for field in self.fields.values():
             if isinstance(field.widget, forms.CheckboxSelectMultiple):
                 continue
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.setdefault("class", "checkbox")
+                continue
             field.widget.attrs.setdefault("class", INPUT_CLS)
         self.fields["slug"].required = False
         self.fields["slug"].help_text = "Leave blank to auto-generate from the name."
+        self.fields["fee_rs"].widget.attrs.update(
+            {"min": MINIMUM_SERVICE_FEE_RS, "step": 50}
+        )
         qs = DocumentType.objects.all()
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)

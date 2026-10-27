@@ -3,54 +3,67 @@
 {% block title %}Office: Documents — PU Document Sewa{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-1">Documents</h1>
-<p class="text-gray-600 mb-6">Catalog items students can order. Tick components to turn one into a bundle (e.g. TMP).</p>
-{% include "office/_subnav.html" %}
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Catalog management</p>
+      <h1>Documents</h1>
+      <p>Catalog items students can order. Tick components to turn an item into a bundle, such as the TMP bundle.</p>
+    </div>
+    <a href="{% url 'office_document_create' %}" class="btn btn-primary">Add document</a>
+  </div>
 
-<div class="mb-4 text-right">
-  <a href="{% url 'office_document_create' %}" class="rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">Add document</a>
-</div>
+  {% include "office/_subnav.html" %}
 
-<div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-  <table class="min-w-full text-sm">
-    <thead class="bg-gray-50 text-gray-600 text-left">
-      <tr>
-        <th class="px-4 py-3">Name</th>
-        <th class="px-4 py-3">Slug</th>
-        <th class="px-4 py-3">Fee</th>
-        <th class="px-4 py-3">Days</th>
-        <th class="px-4 py-3">Active</th>
-        <th class="px-4 py-3">Bundle</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
-      {% for doc in documents %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 font-medium">{{ doc.name }}</td>
-          <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ doc.slug }}</td>
-          <td class="px-4 py-3">Rs. {{ doc.fee_rs|floatformat:0 }}</td>
-          <td class="px-4 py-3 text-gray-500">{{ doc.processing_days }}</td>
-          <td class="px-4 py-3">
-            {% if doc.is_active %}<span class="text-green-600 text-xs font-medium">Yes</span>{% else %}<span class="text-red-500 text-xs font-medium">No</span>{% endif %}
-          </td>
-          <td class="px-4 py-3">
-            {% if doc.includes.exists %}
-              <span class="rounded bg-purple-50 text-purple-700 text-xs font-medium px-2 py-0.5">Bundle</span>
-              <span class="text-xs text-gray-500 ml-1">{{ doc.includes.all|join:", " }}</span>
-            {% else %}
-              <span class="text-gray-400">—</span>
-            {% endif %}
-          </td>
-          <td class="px-4 py-3 text-right space-x-3 whitespace-nowrap">
-            <a href="{% url 'office_document_update' doc.pk %}" class="text-blue-600 hover:underline">Edit</a>
-            <a href="{% url 'office_document_delete' doc.pk %}" class="text-red-600 hover:underline">Delete</a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No documents yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-card">
+    <div class="table-wrap">
+      <table class="data-table" style="min-width: 54rem;">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Slug</th>
+            <th scope="col">Min. fee</th>
+            <th scope="col">Processing</th>
+            <th scope="col">Active</th>
+            <th scope="col">Bundle</th>
+            <th scope="col"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in documents %}
+            <tr>
+              <td class="strong">{{ doc.name }}</td>
+              <td class="mono">{{ doc.slug }}</td>
+              <td class="nowrap">Rs. {{ doc.fee_rs|floatformat:0 }}</td>
+              <td class="nowrap">~{{ doc.processing_days }} days</td>
+              <td>
+                {% if doc.is_active %}
+                  <span class="badge status-delivered">Active</span>
+                {% else %}
+                  <span class="badge status-cancelled">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if doc.includes.exists %}
+                  <span class="badge badge-bundle">Bundle</span>
+                  <div class="sub">{{ doc.includes.all|join:", " }}</div>
+                {% else %}
+                  <span class="muted-sm">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="actions">
+                  <a href="{% url 'office_document_update' doc.pk %}">Edit</a>
+                  <a href="{% url 'office_document_delete' doc.pk %}" class="danger">Delete</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="table-empty">No documents yet. Add your first catalog item to get started.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% endblock %}

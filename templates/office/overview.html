@@ -1,44 +1,90 @@
 {% extends "base_admin.html" %}
 
-{% block title %}Office — PU Document Sewa{% endblock %}
+{% block title %}Office overview — PU Document Sewa{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-1">Office</h1>
-<p class="text-gray-600 mb-6">Manage documents, bundles, colleges, and applications.</p>
-{% include "office/_subnav.html" %}
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Staff office</p>
+      <h1>Office overview</h1>
+      <p>Manage documents, bundles, colleges, and the full application pipeline from receipt verification to delivery.</p>
+    </div>
+    <div class="btn-row">
+      <a href="{% url 'office_document_create' %}" class="btn btn-secondary">Add document</a>
+      <a href="{% url 'office_applications' %}" class="btn btn-primary">View applications</a>
+    </div>
+  </div>
 
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-  <a href="{% url 'office_applications' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Awaiting verification</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_pending }}</div>
-    <div class="text-xs text-gray-400 mt-1">Submitted + Pickup Receipt Verified</div>
-  </a>
-  <a href="{% url 'office_applications' %}?status=COLLECTING" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Collecting from PU</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_collecting }}</div>
-  </a>
-  <a href="{% url 'office_applications' %}?status=DISPATCHED" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Dispatched</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_dispatched }}</div>
-  </a>
-  <a href="{% url 'office_applications' %}?status=DELIVERED" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Delivered</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_delivered }}</div>
-  </a>
-  <a href="{% url 'office_applications' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Total applications</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_total }}</div>
-  </a>
-  <a href="{% url 'office_documents' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Documents</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_documents }}</div>
-  </a>
-  <a href="{% url 'office_colleges' %}" class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300">
-    <div class="text-sm text-gray-500">Colleges</div>
-    <div class="text-3xl font-bold mt-1">{{ stat_colleges }}</div>
-  </a>
+  {% include "office/_subnav.html" %}
+
+  <div class="stats-cards">
+    <a href="{% url 'office_applications' %}" class="stat-card">
+      <span class="stat-card-head">
+        Awaiting verification
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </span>
+      <strong>{{ stat_pending }}</strong>
+      <small>Submitted + pickup receipt verified</small>
+    </a>
+    <a href="{% url 'office_applications' %}?status=COLLECTING" class="stat-card">
+      <span class="stat-card-head">
+        Collecting from PU
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+      </span>
+      <strong>{{ stat_collecting }}</strong>
+      <small>Receipt verified and ready for pickup</small>
+    </a>
+    <a href="{% url 'office_applications' %}?status=DISPATCHED" class="stat-card">
+      <span class="stat-card-head">
+        Dispatched
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="10" rx="1.5"/><path d="M15 9h3l3 3v4h-6"/><circle cx="6" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>
+      </span>
+      <strong>{{ stat_dispatched }}</strong>
+      <small>With a courier, tracking recorded</small>
+    </a>
+    <a href="{% url 'office_applications' %}?status=DELIVERED" class="stat-card">
+      <span class="stat-card-head">
+        Delivered
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      </span>
+      <strong>{{ stat_delivered }}</strong>
+      <small>Completed deliveries</small>
+    </a>
+    <a href="{% url 'office_applications' %}" class="stat-card">
+      <span class="stat-card-head">
+        Total applications
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </span>
+      <strong>{{ stat_total }}</strong>
+      <small>All time</small>
+    </a>
+    <a href="{% url 'office_documents' %}" class="stat-card">
+      <span class="stat-card-head">
+        Documents
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+      </span>
+      <strong>{{ stat_documents }}</strong>
+      <small>Catalog items and bundles</small>
+    </a>
+    <a href="{% url 'office_colleges' %}" class="stat-card">
+      <span class="stat-card-head">
+        Colleges
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+      </span>
+      <strong>{{ stat_colleges }}</strong>
+      <small>Affiliated college directory</small>
+    </a>
+  </div>
+
+  <div class="section-head" style="margin-top: 2.25rem;">
+    <div>
+      <h2 style="font-size: 1.35rem;">Recent applications</h2>
+      <p>The latest requests across all students.</p>
+    </div>
+    <a href="{% url 'office_applications' %}" class="btn btn-secondary btn-sm">All applications</a>
+  </div>
+
+  {% include "applications/_table.html" with applications=recent_applications %}
 </div>
-
-<h2 class="text-lg font-bold mt-10 mb-3">Recent applications</h2>
-{% include "applications/_table.html" with applications=recent_applications %}
 {% endblock %}

@@ -89,7 +89,7 @@ TMP_BUNDLE = {
 
 
 class Command(BaseCommand):
-    help = "Seed colleges, document types (flat service fee), TMP bundle, and an admin user"
+    help = "Seed colleges, document types (minimum service fee), TMP bundle, and an admin user"
 
     def handle(self, *args, **options):
         for c in COLLEGES:
@@ -104,7 +104,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Document types: {DocumentType.objects.filter(slug__in=[d['slug'] for d in DOCUMENT_TYPES]).count()} "
-                f"(service fee Rs. {SERVICE_FEE_RS})"
+                f"(minimum service fee Rs. {SERVICE_FEE_RS})"
             )
         )
 

@@ -3,16 +3,40 @@
 {% block title %}Office: Applications — PU Document Sewa{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-1">Applications</h1>
-<p class="text-gray-600 mb-6">All student applications. Use Update to verify receipts, collect, dispatch, and deliver.</p>
-{% include "office/_subnav.html" %}
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Staff office</p>
+      <h1>Applications</h1>
+      <p>Verify receipts, move applications through collection, dispatch, and delivery.</p>
+      <p class="muted-sm" style="margin-top: 0.35rem;">{{ applications|length }} application{{ applications|length|pluralize }} in this view.</p>
+    </div>
+    <a href="{% url 'office_home' %}" class="btn btn-secondary">Office overview</a>
+  </div>
 
-<div class="mb-4 flex flex-wrap gap-2">
-  <a href="{% url 'office_applications' %}" class="rounded-full px-3 py-1 text-sm border {% if not current_status %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">All</a>
-  {% for value, label in statuses %}
-    <a href="?status={{ value }}" class="rounded-full px-3 py-1 text-sm border {% if current_status == value %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ label }}</a>
-  {% endfor %}
+  {% include "office/_subnav.html" %}
+
+  <div class="filter-bar" aria-label="Filter applications">
+    <a href="{% url 'office_applications' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}" class="pill{% if not current_status %} is-active{% endif %}"{% if not current_status %} aria-current="true"{% endif %}>All</a>
+    {% for value, label in statuses %}
+      <a href="?status={{ value }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="pill{% if current_status == value %} is-active{% endif %}"{% if current_status == value %} aria-current="true"{% endif %}>{{ label }}</a>
+    {% endfor %}
+    <form method="get" class="search-form" role="search">
+      {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+      <label for="application-search" class="sr-only">Search applications</label>
+      <input type="search" id="application-search" name="q" value="{{ search_query }}" class="input" placeholder="Search name, email, PU ref…">
+      <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      {% if search_query %}<a href="{% url 'office_applications' %}{% if current_status %}?status={{ current_status }}{% endif %}" class="btn btn-ghost btn-sm">Clear</a>{% endif %}
+    </form>
+  </div>
+
+  {% if search_query %}
+    <div class="callout" style="margin-bottom: 1rem;">
+      <span>Showing results for <strong>“{{ search_query }}”</strong>.</span>
+      <span class="muted-sm">Search matches student name, email, PU reference, and document name.</span>
+    </div>
+  {% endif %}
+
+  {% include "applications/_table.html" %}
 </div>
-
-{% include "applications/_table.html" %}
 {% endblock %}

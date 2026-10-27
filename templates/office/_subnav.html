@@ -1,16 +1,6 @@
-<div class="mb-6 border-b border-gray-200">
-  <nav class="flex flex-wrap gap-1 -mb-px">
-    <a href="{% url 'office_home' %}"
-       class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0
-       {% if office_section == 'overview' %}bg-white border-gray-200 text-blue-700{% else %}text-gray-500 border-transparent hover:text-blue-600{% endif %}">Overview</a>
-    <a href="{% url 'office_documents' %}"
-       class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0
-       {% if office_section == 'documents' %}bg-white border-gray-200 text-blue-700{% else %}text-gray-500 border-transparent hover:text-blue-600{% endif %}">Documents</a>
-    <a href="{% url 'office_colleges' %}"
-       class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0
-       {% if office_section == 'colleges' %}bg-white border-gray-200 text-blue-700{% else %}text-gray-500 border-transparent hover:text-blue-600{% endif %}">Colleges</a>
-    <a href="{% url 'office_applications' %}"
-       class="px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0
-       {% if office_section == 'applications' %}bg-white border-gray-200 text-blue-700{% else %}text-gray-500 border-transparent hover:text-blue-600{% endif %}">Applications</a>
-  </nav>
-</div>
+<nav class="office-tabs" aria-label="Office sections">
+  <a href="{% url 'office_home' %}" class="office-tab" {% if office_section == 'overview' %}aria-current="page"{% endif %}>Overview</a>
+  <a href="{% url 'office_documents' %}" class="office-tab" {% if office_section == 'documents' %}aria-current="page"{% endif %}>Documents</a>
+  <a href="{% url 'office_colleges' %}" class="office-tab" {% if office_section == 'colleges' %}aria-current="page"{% endif %}>Colleges</a>
+  <a href="{% url 'office_applications' %}" class="office-tab" {% if office_section == 'applications' %}aria-current="page"{% endif %}>Applications</a>
+</nav>

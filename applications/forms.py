@@ -1,5 +1,7 @@
 from django import forms
 
+from config.pricing import MINIMUM_SERVICE_FEE_RS
+
 from .models import Application, ApplicationStatus, Courier, Shipment
 
 
@@ -19,6 +21,7 @@ class ApplicationForm(forms.ModelForm):
             "delivery_ward",
             "delivery_street",
             "delivery_notes",
+            "urgency",
         ]
         widgets = {
             "delivery_notes": forms.Textarea(attrs={"rows": 3}),
@@ -26,18 +29,29 @@ class ApplicationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        input_cls = (
-            "w-full rounded-lg border border-gray-300 px-3 py-2 "
-            "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        )
         for name, field in self.fields.items():
             if not isinstance(field.widget, (forms.CheckboxInput, forms.SelectMultiple, forms.FileInput)):
-                field.widget.attrs.setdefault("class", input_cls)
+                field.widget.attrs.setdefault("class", "input")
+        self.fields["full_name"].label = "Full name"
+        self.fields["phone"].label = "Phone number"
+        self.fields["full_name"].widget.attrs.setdefault("placeholder", "As shown on your PU documents")
+        self.fields["phone"].widget.attrs.setdefault("placeholder", "98XXXXXXXX")
+        self.fields["pu_reference_no"].widget.attrs.setdefault("placeholder", "e.g. PU-APP-123456")
+        self.fields["delivery_municipality"].widget.attrs.setdefault("placeholder", "Municipality / city")
+        self.fields["delivery_street"].widget.attrs.setdefault("placeholder", "Street, landmark, or house no. (optional)")
+        self.fields["delivery_notes"].widget.attrs.setdefault("placeholder", "Delivery instructions or landmarks (optional)")
         self.fields["college"].required = False
         self.fields["college"].empty_label = "— Select college (optional) —"
         self.fields["delivery_ward"].required = False
         self.fields["delivery_street"].required = False
         self.fields["delivery_notes"].required = False
+        self.fields["urgency"].label = "Delivery urgency"
+        self.fields["urgency"].help_text = (
+            "Choose Urgent if you need the document handled as quickly as possible. "
+            f"The minimum delivery fee is Rs. {MINIMUM_SERVICE_FEE_RS}; your final fee "
+            "is confirmed after receipt verification."
+        )
+        self.fields["urgency"].widget.attrs.update({"class": "input"})
         self.fields["pu_reference_no"].label = "PU application reference no."
         self.fields["pu_reference_no"].help_text = (
             "Reference / application number shown on your services.pu.edu.np application, "
@@ -49,64 +63,61 @@ class ApplicationForm(forms.ModelForm):
             "college finishes processing. Upload it here (screenshot or PDF)."
         )
         self.fields["receipt"].widget.attrs.update(
-            {
-                "class": (
-                    "w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 "
-                    "file:bg-blue-50 file:px-4 file:py-2 file:text-blue-700 hover:file:bg-blue-100"
-                ),
-                "accept": "image/*,.pdf",
-            }
+            {"class": "input", "accept": "image/*,.pdf"}
         )
 
 
 class StatusUpdateForm(forms.ModelForm):
     courier = forms.ChoiceField(
+        label="Courier",
         choices=Courier.choices,
         required=False,
         initial=Courier.NEPAL_CAN_MOVE,
-        widget=forms.Select(
-            attrs={
-                "class": "w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            }
-        ),
+        widget=forms.Select(attrs={"class": "input"}),
     )
     courier_name = forms.CharField(
+        label="Courier name (if Other)",
         max_length=100,
         required=False,
         widget=forms.TextInput(
-            attrs={
-                "class": "w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
-                "placeholder": "Courier name (when Other)",
-            }
+            attrs={"class": "input", "placeholder": "Courier name (when Other)"},
         ),
     )
     tracking_id = forms.CharField(
+        label="Tracking ID",
         max_length=100,
         required=False,
         widget=forms.TextInput(
-            attrs={
-                "class": "w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
-                "placeholder": "e.g. NCM tracking ID",
-            }
+            attrs={"class": "input", "placeholder": "e.g. NCM tracking ID"},
         ),
         help_text="Required when status is set to Dispatched.",
     )
 
     class Meta:
         model = Application
-        fields = ["status", "admin_remark"]
+        fields = ["status", "service_fee_rs", "admin_remark"]
         widgets = {"admin_remark": forms.Textarea(attrs={"rows": 3})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        input_cls = (
-            "w-full rounded-lg border border-gray-300 px-3 py-2 "
-            "focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        )
         for field in self.fields.values():
             if not isinstance(field.widget, forms.Select):
-                field.widget.attrs.setdefault("class", input_cls)
-        self.fields["status"].widget.attrs.setdefault("class", input_cls)
+                field.widget.attrs.setdefault("class", "input")
+        self.fields["status"].widget.attrs.setdefault("class", "input")
+        self.fields["status"].label = "Application status"
+        self.fields["service_fee_rs"].label = "Final service fee (Rs.)"
+        self.fields["service_fee_rs"].help_text = (
+            f"Minimum Rs. {MINIMUM_SERVICE_FEE_RS}. Set the final fee based on the "
+            "document, delivery location, and the student's urgency. This amount is "
+            "collected cash on delivery."
+        )
+        self.fields["service_fee_rs"].widget.attrs.update(
+            {"class": "input", "min": MINIMUM_SERVICE_FEE_RS, "step": 50}
+        )
+        self.fields["admin_remark"].label = "Note to student"
+        self.fields["admin_remark"].help_text = (
+            "Visible on the student's application page. Use it to explain a rejection or share updates."
+        )
 
         shipment = getattr(self.instance, "shipment", None)
         if shipment:

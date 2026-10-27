@@ -24,10 +24,20 @@ class RegisterForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.setdefault(
-                "class",
-                "w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
-            )
+            field.widget.attrs.setdefault("class", "input")
+        self.fields["name"].label = "Full name"
+        self.fields["email"].label = "Email address"
+        self.fields["phone"].label = "Phone number"
+        self.fields["symbol_no"].label = "Symbol number"
+        self.fields["reg_no"].label = "Registration number"
+        self.fields["citizenship_no"].label = "Citizenship number"
+        self.fields["name"].widget.attrs.setdefault("placeholder", "Your full name")
+        self.fields["email"].widget.attrs.setdefault("placeholder", "you@example.com")
+        self.fields["phone"].widget.attrs.setdefault("placeholder", "98XXXXXXXX")
+        self.fields["email"].widget.attrs.setdefault("autocomplete", "email")
+        self.fields["phone"].widget.attrs.setdefault("autocomplete", "tel")
+        self.fields["password1"].widget.attrs.setdefault("autocomplete", "new-password")
+        self.fields["password2"].widget.attrs.setdefault("autocomplete", "new-password")
         self.fields["college"].queryset = College.objects.all()
         self.fields["college"].required = False
         self.fields["college"].empty_label = "— Select college (optional) —"
@@ -44,10 +54,12 @@ class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.setdefault(
-                "class",
-                "w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
-            )
+            field.widget.attrs.setdefault("class", "input")
+        self.fields["username"].label = "Email address"
+        self.fields["username"].widget.attrs.update(
+            {"placeholder": "you@example.com", "autocomplete": "email", "autofocus": True}
+        )
+        self.fields["password"].widget.attrs.setdefault("autocomplete", "current-password")
 
 
 class ProfileForm(forms.ModelForm):
@@ -58,10 +70,15 @@ class ProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.setdefault(
-                "class",
-                "w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
-            )
+            field.widget.attrs.setdefault("class", "input")
+        self.fields["name"].label = "Full name"
+        self.fields["phone"].label = "Phone number"
+        self.fields["symbol_no"].label = "Symbol number"
+        self.fields["reg_no"].label = "Registration number"
+        self.fields["citizenship_no"].label = "Citizenship number"
+        self.fields["name"].widget.attrs.setdefault("placeholder", "Your full name")
+        self.fields["phone"].widget.attrs.setdefault("placeholder", "98XXXXXXXX")
+        self.fields["phone"].widget.attrs.setdefault("autocomplete", "tel")
         self.fields["college"].queryset = College.objects.all()
         self.fields["college"].required = False
         self.fields["college"].empty_label = "— Select college (optional) —"

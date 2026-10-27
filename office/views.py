@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, Q
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
@@ -155,10 +155,19 @@ class OfficeApplicationListView(AdminRequiredMixin, OfficeSectionMixin, ListView
         status = self.request.GET.get("status")
         if status and status in ApplicationStatus.values:
             qs = qs.filter(status=status)
+        query = self.request.GET.get("q", "").strip()
+        if query:
+            qs = qs.filter(
+                Q(full_name__icontains=query)
+                | Q(pu_reference_no__icontains=query)
+                | Q(student__email__icontains=query)
+                | Q(document_type__name__icontains=query)
+            )
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["statuses"] = ApplicationStatus.choices
         ctx["current_status"] = self.request.GET.get("status", "")
+        ctx["search_query"] = self.request.GET.get("q", "")
         return ctx

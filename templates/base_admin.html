@@ -1,18 +1,59 @@
 {% extends "base.html" %}
 
-{% block nav %}
-<div class="flex items-center gap-6">
-  <a href="{% url 'office_home' %}" class="text-lg font-bold text-blue-700">Admin — PU Document Sewa</a>
-  <span class="text-xs font-semibold uppercase tracking-wide rounded-full bg-blue-50 text-blue-700 px-2.5 py-1">Admin</span>
-</div>
-<div class="flex items-center gap-3">
-  <a href="{% url 'home' %}" class="text-sm text-gray-600 hover:text-blue-600">Main site</a>
-  {% if user.is_authenticated %}
-    <a href="{% url 'profile' %}" class="text-sm text-gray-600 hover:text-blue-600">{{ user.email }}</a>
-    <form method="post" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button class="text-sm rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-100">Logout</button>
-    </form>
-  {% endif %}
-</div>
+{% block site_header %}
+<header class="site-header" data-site-header>
+  <div class="shell site-nav">
+    {% include "includes/_brand.html" with brand_sub="Staff office" %}
+
+    <div class="nav-actions">
+      <span class="admin-pill">Staff</span>
+      <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">Main site</a>
+      <a href="{% url 'profile' %}" class="account-chip" title="{{ user.email }}">
+        <span class="avatar" aria-hidden="true">{{ user.name|default:user.email|slice:":1"|upper }}</span>
+        <span class="account-email">{{ user.name|default:user.email }}</span>
+      </a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+      </form>
+    </div>
+
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="admin-mobile-navigation" aria-label="Open navigation menu">
+      <svg class="icon icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="icon icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="mobile-panel" id="admin-mobile-navigation" data-nav-panel hidden>
+    <div class="shell">
+      <nav class="mobile-links" aria-label="Office mobile">
+        <a href="{% url 'office_home' %}" class="nav-link" {% if request.resolver_match.url_name == 'office_home' %}aria-current="page"{% endif %}>Office overview</a>
+        <a href="{% url 'office_documents' %}" class="nav-link">Documents</a>
+        <a href="{% url 'office_colleges' %}" class="nav-link">Colleges</a>
+        <a href="{% url 'office_applications' %}" class="nav-link">Applications</a>
+        <a href="{% url 'home' %}" class="nav-link">Main site</a>
+      </nav>
+      <div class="mobile-account">
+        <a href="{% url 'profile' %}" class="account-chip" title="{{ user.email }}">
+          <span class="avatar" aria-hidden="true">{{ user.name|default:user.email|slice:":1"|upper }}</span>
+          <span class="account-email">{{ user.name|default:user.email }}</span>
+        </a>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <noscript>
+    <div class="shell no-script-nav">
+      <a href="{% url 'office_home' %}">Office overview</a>
+      <a href="{% url 'office_documents' %}">Documents</a>
+      <a href="{% url 'office_colleges' %}">Colleges</a>
+      <a href="{% url 'office_applications' %}">Applications</a>
+      <a href="{% url 'home' %}">Main site</a>
+    </div>
+  </noscript>
+</header>
 {% endblock %}

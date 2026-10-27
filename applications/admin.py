@@ -10,8 +10,17 @@ class ApplicationFileInline(admin.TabularInline):
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ["id", "full_name", "document_type", "pu_reference_no", "status", "created_at"]
-    list_filter = ["status", "document_type"]
+    list_display = [
+        "id",
+        "full_name",
+        "document_type",
+        "urgency",
+        "service_fee_rs",
+        "pu_reference_no",
+        "status",
+        "created_at",
+    ]
+    list_filter = ["status", "document_type", "urgency"]
     search_fields = ["full_name", "pu_reference_no", "phone", "student__email"]
     inlines = [ApplicationFileInline]
 

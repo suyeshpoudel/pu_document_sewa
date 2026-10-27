@@ -3,113 +3,166 @@
 {% block title %}Application #{{ application.pk }} — PU Document Sewa{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto space-y-6">
-  <div class="flex items-center justify-between">
+<div class="shell section-sm">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'my_applications' %}">My applications</a>
+    <span aria-hidden="true">/</span>
+    <span>Application #{{ application.pk }}</span>
+  </nav>
+
+  <div class="detail-header">
     <div>
-      <h1 class="text-2xl font-bold">Application #{{ application.pk }}</h1>
-      <p class="text-gray-600">{{ application.document_type.name }}</p>
+      <p class="eyebrow">Application #{{ application.pk }}</p>
+      <h1 style="margin-top: 0.45rem;">{{ application.document_type.name }}</h1>
+      <p>PU reference <span class="mono">{{ application.pu_reference_no }}</span> · Submitted {{ application.created_at|date:"M j, Y" }}</p>
       {% if application.document_type.includes.exists %}
-        <p class="text-sm text-purple-700 mt-1">Bundle: {{ application.document_type.includes.all|join:", " }}</p>
+        <p class="bundle-note">Bundle includes: {{ application.document_type.includes.all|join:", " }}</p>
       {% endif %}
     </div>
-    <span class="rounded-full text-sm px-3 py-1
-      {% if application.status == 'DELIVERED' %}bg-green-50 text-green-700
-      {% elif application.status == 'REJECTED' or application.status == 'CANCELLED' %}bg-red-50 text-red-700
-      {% elif application.status == 'DISPATCHED' %}bg-blue-50 text-blue-700
-      {% else %}bg-yellow-50 text-yellow-700{% endif %}">{{ application.get_status_display }}</span>
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+      {% include "includes/_status_badge.html" with application=application %}
+    </div>
   </div>
 
-  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold mb-4">Progress</h2>
-    <ol class="flex gap-2">
+  {% if application.status == 'REJECTED' or application.status == 'CANCELLED' %}
+    <div class="alert alert-error" role="alert" style="margin-bottom: 1.25rem;">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+      <div>
+        <strong>This application was {{ application.get_status_display|lower }}.</strong>
+        {% if application.admin_remark %}<p style="margin-top: 0.25rem;">{{ application.admin_remark }}</p>{% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="timeline-card" style="margin-bottom: 1.1rem;">
+    <h2>Progress</h2>
+    <ol class="timeline" aria-label="Application progress">
       {% for step in application.timeline %}
-        <li class="flex-1">
-          <div class="h-2 rounded-full {% if step.reached %}bg-blue-600{% else %}bg-gray-200{% endif %}"></div>
-          <p class="text-xs mt-1.5 {% if step.current %}text-blue-700 font-semibold{% elif step.reached %}text-gray-700{% else %}text-gray-400{% endif %}">{{ step.label }}</p>
+        <li class="timeline-step{% if step.reached %} is-reached{% endif %}{% if step.current %} is-current{% endif %}"{% if step.current %} aria-current="step"{% endif %}>
+          <span class="timeline-dot">
+            {% if step.reached and not step.current %}
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            {% endif %}
+          </span>
+          <span class="timeline-label">{{ step.label }}</span>
         </li>
       {% endfor %}
     </ol>
-    {% if application.status == 'REJECTED' or application.status == 'CANCELLED' %}
-      <div class="mt-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3">
-        This application was {{ application.get_status_display|lower }}{% if application.admin_remark %}: {{ application.admin_remark }}{% endif %}
-      </div>
-    {% endif %}
   </div>
 
-  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold mb-4">Application details</h2>
-    <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-      <div><dt class="text-gray-500">Full name</dt><dd class="font-medium">{{ application.full_name }}</dd></div>
-      <div><dt class="text-gray-500">Phone</dt><dd class="font-medium">{{ application.phone }}</dd></div>
-      <div><dt class="text-gray-500">PU reference no.</dt><dd class="font-medium font-mono">{{ application.pu_reference_no }}</dd></div>
-      <div><dt class="text-gray-500">College</dt><dd class="font-medium">{{ application.college|default:"—" }}</dd></div>
-      <div><dt class="text-gray-500">Our service fee</dt><dd class="font-medium">Rs. {{ application.document_type.fee_rs|floatformat:0 }} <span class="text-gray-500 font-normal">— paid on delivery</span></dd></div>
-      <div class="col-span-2">
-        <dt class="text-gray-500">Pickup receipt</dt>
-        <dd class="mt-1">
-          {% if application.receipt %}
-            <a href="{{ application.receipt.url }}" target="_blank" rel="noopener" class="inline-block text-blue-600 hover:underline">View pickup receipt</a>
-          {% else %}<span class="text-gray-400">Not provided</span>{% endif %}
-        </dd>
-      </div>
-    </dl>
-  </div>
+  <div class="detail-layout">
+    <div class="info-grid">
+      <section class="info-card">
+        <h2>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+          Application details
+        </h2>
+        <dl class="info-list">
+          <div><dt>Full name</dt><dd>{{ application.full_name }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ application.phone }}</dd></div>
+          <div><dt>PU reference no.</dt><dd class="mono">{{ application.pu_reference_no }}</dd></div>
+          <div><dt>College</dt><dd>{{ application.college.name|default:"—" }}</dd></div>
+          <div><dt>Service fee</dt><dd class="fee">Rs. {{ application.service_fee_rs|floatformat:0 }} <span class="muted-sm">{% if application.fee_confirmed %}confirmed · pay on delivery{% else %}estimated · confirmed after verification{% endif %}</span></dd></div>
+          <div><dt>Urgency</dt><dd>{{ application.get_urgency_display }}</dd></div>
+          <div><dt>Last updated</dt><dd class="soft">{{ application.updated_at|date:"M j, Y, g:i a" }}</dd></div>
+        </dl>
+      </section>
 
-  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold mb-4">Delivery address</h2>
-    <p class="text-sm text-gray-800">
-      {{ application.delivery_municipality }}, Ward {{ application.delivery_ward|default:"—" }},
-      {{ application.delivery_district }}, {{ application.delivery_province }}
-      {% if application.delivery_street %}<br>{{ application.delivery_street }}{% endif %}
-    </p>
-    {% if application.delivery_notes %}<p class="text-sm text-gray-500 mt-2">{{ application.delivery_notes }}</p>{% endif %}
-  </div>
+      <section class="info-card">
+        <h2>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Delivery address
+        </h2>
+        <p>
+          {{ application.delivery_municipality }}, Ward {{ application.delivery_ward|default:"—" }},
+          {{ application.delivery_district }}, {{ application.delivery_province }}
+          {% if application.delivery_street %}<br>{{ application.delivery_street }}{% endif %}
+        </p>
+        {% if application.delivery_notes %}<p class="muted-sm" style="margin-top: 0.5rem;">{{ application.delivery_notes }}</p>{% endif %}
+      </section>
 
-  {% if application.shipment %}
-    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 class="font-semibold mb-4">Delivery</h2>
-      <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-        <div><dt class="text-gray-500">Courier</dt><dd class="font-medium">{{ application.shipment.display_courier }}</dd></div>
-        <div><dt class="text-gray-500">Tracking ID</dt><dd class="font-medium font-mono">{{ application.shipment.tracking_id|default:"—" }}</dd></div>
-        {% if application.shipment.cod_amount_rs %}
-          <div><dt class="text-gray-500">Cash on delivery</dt><dd class="font-semibold">Rs. {{ application.shipment.cod_amount_rs|floatformat:0 }} <span class="text-gray-500 font-normal">— pay the courier on delivery</span></dd></div>
-        {% endif %}
-      </dl>
-      {% if application.shipment.tracking_url %}
-        <a href="{{ application.shipment.tracking_url }}" target="_blank" rel="noopener"
-           class="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">
-          Track on {{ application.shipment.display_courier }}
-        </a>
+      {% if application.shipment %}
+        <section class="info-card">
+          <h2>
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="10" rx="1.5"/><path d="M15 9h3l3 3v4h-6"/><circle cx="6" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>
+            Courier delivery
+          </h2>
+          <dl class="info-list">
+            <div><dt>Courier</dt><dd>{{ application.shipment.display_courier }}</dd></div>
+            <div><dt>Tracking ID</dt><dd class="mono">{{ application.shipment.tracking_id|default:"—" }}</dd></div>
+            <div><dt>Courier status</dt><dd>{{ application.shipment.status }}</dd></div>
+            <div><dt>Cash on delivery</dt><dd class="fee">{% if application.shipment.cod_amount_rs %}Rs. {{ application.shipment.cod_amount_rs|floatformat:0 }}{% else %}—{% endif %} <span class="muted-sm">pay the courier</span></dd></div>
+            <div><dt>Dispatched</dt><dd class="soft">{{ application.shipment.created_at|date:"M j, Y" }}</dd></div>
+          </dl>
+          {% if application.shipment.tracking_url %}
+            <a href="{{ application.shipment.tracking_url }}" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="margin-top: 0.9rem;">
+              Track on {{ application.shipment.display_courier }}
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </a>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      <section class="info-card">
+        <h2>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.6 12.4 2.6a2 2 0 0 0-1.4-.6H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .6 1.4l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8Z"/><path d="M7 7h.01"/></svg>
+          Attached files
+        </h2>
+        <ul class="file-list">
+          {% for f in application.files.all %}
+            <li>
+              <span>{{ f.file_type }} <span class="muted-sm">· {{ f.created_at|date:"M j, Y" }}</span></span>
+              <a href="{{ f.file.url }}" target="_blank" rel="noopener">View</a>
+            </li>
+          {% empty %}
+            <li><span class="muted-sm">No additional files attached.</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      {% if application.status != 'REJECTED' and application.status != 'CANCELLED' and application.admin_remark %}
+        <section class="info-card">
+          <h2>
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Notes from our team
+          </h2>
+          <p>{{ application.admin_remark }}</p>
+        </section>
       {% endif %}
     </div>
-  {% endif %}
 
-  <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold mb-4">Attached files</h2>
-    <ul class="divide-y divide-gray-100 text-sm">
-      {% for f in application.files.all %}
-        <li class="py-2 flex items-center justify-between">
-          <span>{{ f.file_type }}</span>
-          <a href="{{ f.file.url }}" class="text-blue-600 hover:underline" target="_blank">View</a>
-        </li>
-      {% empty %}
-        <li class="py-2 text-gray-500">No files attached.</li>
-      {% endfor %}
-    </ul>
+    <aside class="info-grid">
+      <section class="info-card">
+        <h2>At a glance</h2>
+        <dl class="info-list">
+          <div><dt>Status</dt><dd>{% include "includes/_status_badge.html" with application=application %}</dd></div>
+          <div><dt>Service fee</dt><dd class="fee">Rs. {{ application.service_fee_rs|floatformat:0 }}</dd></div>
+          <div><dt>Fee status</dt><dd>{% if application.fee_confirmed %}Confirmed{% else %}Estimated{% endif %}</dd></div>
+          <div><dt>Urgency</dt><dd>{{ application.get_urgency_display }}</dd></div>
+          <div><dt>Submitted</dt><dd class="soft">{{ application.created_at|date:"M j, Y" }}</dd></div>
+          <div><dt>Application</dt><dd class="mono">#{{ application.pk }}</dd></div>
+        </dl>
+        <div style="display: grid; gap: 0.5rem; margin-top: 1rem;">
+          {% if application.receipt %}
+            <a href="{{ application.receipt.url }}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">View pickup receipt</a>
+          {% else %}
+            <span class="muted-sm">No pickup receipt on file.</span>
+          {% endif %}
+          <a href="{% url 'apply' %}" class="btn btn-ghost btn-sm">Start another application</a>
+        </div>
+      </section>
+
+      {% if application.cancelable %}
+        <section class="info-card">
+          <h2>Cancel application</h2>
+          <p class="muted-sm">You can cancel while the application is submitted or receipt-verified. Once collection starts, cancellation is no longer available.</p>
+          <form method="post" action="{% url 'cancel_application' application.pk %}" onsubmit="return confirm('Cancel this application? This cannot be undone.');" class="danger-zone">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm btn-block">Cancel application</button>
+          </form>
+        </section>
+      {% endif %}
+    </aside>
   </div>
-
-  {% if application.status != 'REJECTED' and application.status != 'CANCELLED' and application.admin_remark %}
-    <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 class="font-semibold mb-2">Notes from our team</h2>
-      <p class="text-sm text-gray-800">{{ application.admin_remark }}</p>
-    </div>
-  {% endif %}
-
-  {% if application.cancelable %}
-    <form method="post" action="{% url 'cancel_application' application.pk %}" onsubmit="return confirm('Cancel this application?');">
-      {% csrf_token %}
-      <button class="rounded-lg border border-red-300 text-red-600 px-4 py-2 text-sm hover:bg-red-50">Cancel application</button>
-    </form>
-  {% endif %}
 </div>
 {% endblock %}

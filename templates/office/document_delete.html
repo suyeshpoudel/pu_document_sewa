@@ -3,19 +3,32 @@
 {% block title %}Office: Delete document{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-bold mb-2">Delete document</h1>
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Catalog management</p>
+      <h1>Delete document</h1>
+      <p>This action cannot be undone.</p>
+    </div>
+    <a href="{% url 'office_documents' %}" class="btn btn-secondary">Back to documents</a>
+  </div>
+
   {% include "office/_subnav.html" %}
-  <div class="rounded-xl border border-red-200 bg-red-50 p-6">
-    <p class="text-sm text-red-800">
-      Delete <strong>{{ object.name }}</strong>? This cannot be undone.
-      Documents used by existing applications cannot be deleted.
-    </p>
-    <form method="post" class="mt-4 flex gap-3">
-      {% csrf_token %}
-      <button class="rounded-lg bg-red-600 px-4 py-2 text-white text-sm hover:bg-red-700">Yes, delete</button>
-      <a href="{% url 'office_documents' %}" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cancel</a>
-    </form>
+
+  <div class="narrow">
+    <div class="form-card" style="border-color: #f5c2c2; background: #fffafa;">
+      <div class="alert alert-error" role="alert">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>
+        <div>
+          Delete <strong>{{ object.name }}</strong>? Documents used by existing applications cannot be deleted.
+        </div>
+      </div>
+      <form method="post" class="form-actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, delete document</button>
+        <a href="{% url 'office_documents' %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

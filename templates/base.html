@@ -4,61 +4,282 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b2740">
+  <meta name="description" content="{% block meta_description %}PU Document Sewa collects Pokhara University documents from campus and delivers them to your doorstep, with live status tracking.{% endblock %}">
   <title>{% block title %}PU Document Sewa{% endblock %}</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f2f7fb', 100: '#e5eff6', 600: '#1d6496', 700: '#15507b', 800: '#103a5c', 900: '#0b2740', 950: '#071b2d' },
+            accent: { 50: '#f0faf8', 100: '#dcf3ef', 500: '#159488', 600: '#0f7d70', 700: '#0c655c' },
+            canvas: '#f8f6f1',
+            ink: '#10212d'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            display: ['Fraunces', 'Georgia', 'serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
-  <nav class="bg-white border-b border-gray-200">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      {% block nav %}
-      <div class="flex items-center gap-6">
-        <a href="{% url 'home' %}" class="text-lg font-bold text-blue-700">PU Document Sewa</a>
-        <a href="{% url 'document_list' %}" class="text-sm text-gray-600 hover:text-blue-600">Documents</a>
-        <a href="{% url 'college_list' %}" class="text-sm text-gray-600 hover:text-blue-600">Colleges</a>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  {% block site_header %}
+  <header class="site-header" data-site-header>
+    <div class="shell site-nav">
+      {% include "includes/_brand.html" %}
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="{% url 'home' %}" class="nav-link" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
+        <a href="{% url 'document_list' %}" class="nav-link" {% if request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_detail' %}aria-current="page"{% endif %}>Documents</a>
+        <a href="{% url 'college_list' %}" class="nav-link" {% if request.resolver_match.url_name == 'college_list' %}aria-current="page"{% endif %}>Colleges</a>
+        <a href="{% url 'home' %}#how-it-works" class="nav-link">How it works</a>
         {% if user.is_authenticated %}
-          <a href="{% url 'my_applications' %}" class="text-sm text-gray-600 hover:text-blue-600">My Applications</a>
+          <a href="{% url 'my_applications' %}" class="nav-link" {% if request.resolver_match.url_name == 'my_applications' or request.resolver_match.url_name == 'application_detail' or request.resolver_match.url_name == 'apply' or request.resolver_match.url_name == 'apply_for' %}aria-current="page"{% endif %}>My applications</a>
         {% endif %}
-      </div>
-      <div class="flex items-center gap-3">
+      </nav>
+
+      <div class="nav-actions">
         {% if user.is_authenticated %}
           {% if user.role == 'ADMIN' %}
-            <a href="{% url 'office_home' %}" class="text-sm rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">Admin</a>
+            <a href="{% url 'office_home' %}" class="btn btn-secondary btn-sm">Office</a>
           {% endif %}
-          <a href="{% url 'profile' %}" class="text-sm text-gray-600 hover:text-blue-600">{{ user.email }}</a>
+          <a href="{% url 'profile' %}" class="account-chip" title="{{ user.email }}">
+            <span class="avatar" aria-hidden="true">{{ user.name|default:user.email|slice:":1"|upper }}</span>
+            <span class="account-email">{{ user.name|default:user.email }}</span>
+          </a>
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-            <button class="text-sm rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-100">Logout</button>
+            <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
           </form>
         {% else %}
-          <a href="{% url 'login' %}" class="text-sm text-gray-600 hover:text-blue-600">Login</a>
-          <a href="{% url 'register' %}" class="text-sm rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">Register</a>
+          <a href="{% url 'login' %}" class="btn btn-ghost btn-sm">Log in</a>
+          <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Create account</a>
         {% endif %}
       </div>
-      {% endblock %}
+
+      <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="mobile-navigation" aria-label="Open navigation menu">
+        <svg class="icon icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
     </div>
-  </nav>
+
+    <div class="mobile-panel" id="mobile-navigation" data-nav-panel hidden>
+      <div class="shell">
+        <nav class="mobile-links" aria-label="Mobile">
+          <a href="{% url 'home' %}" class="nav-link" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>Home</a>
+          <a href="{% url 'document_list' %}" class="nav-link" {% if request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_detail' %}aria-current="page"{% endif %}>Documents</a>
+          <a href="{% url 'college_list' %}" class="nav-link" {% if request.resolver_match.url_name == 'college_list' %}aria-current="page"{% endif %}>Colleges</a>
+          <a href="{% url 'home' %}#how-it-works" class="nav-link">How it works</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'my_applications' %}" class="nav-link" {% if request.resolver_match.url_name == 'my_applications' or request.resolver_match.url_name == 'application_detail' %}aria-current="page"{% endif %}>My applications</a>
+          {% endif %}
+        </nav>
+        <div class="mobile-account">
+          {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="account-chip" title="{{ user.email }}">
+              <span class="avatar" aria-hidden="true">{{ user.name|default:user.email|slice:":1"|upper }}</span>
+              <span class="account-email">{{ user.name|default:user.email }}</span>
+            </a>
+            {% if user.role == 'ADMIN' %}
+              <a href="{% url 'office_home' %}" class="btn btn-secondary btn-sm">Office</a>
+            {% endif %}
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+            </form>
+          {% else %}
+            <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Log in</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Create account</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="shell no-script-nav">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'document_list' %}">Documents</a>
+        <a href="{% url 'college_list' %}">Colleges</a>
+        <a href="{% url 'home' %}#how-it-works">How it works</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'my_applications' %}">My applications</a>
+          <a href="{% url 'profile' %}">{{ user.email }}</a>
+        {% else %}
+          <a href="{% url 'login' %}">Log in</a>
+          <a href="{% url 'register' %}">Create account</a>
+        {% endif %}
+      </div>
+    </noscript>
+  </header>
+  {% endblock %}
 
   {% if messages %}
-    <div class="max-w-6xl mx-auto w-full px-4 mt-4 space-y-2">
-      {% for message in messages %}
-        <div class="rounded-lg px-4 py-3 text-sm
-          {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
-          {% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
-          {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
-          {{ message }}
-        </div>
-      {% endfor %}
+    <div class="shell" style="padding-top: 1rem;">
+      <div style="display: grid; gap: 0.6rem;">
+        {% for message in messages %}
+          <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}" role="{% if message.tags == 'error' %}alert{% else %}status{% endif %}">
+            {% if message.tags == 'success' %}
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
+            {% elif message.tags == 'error' %}
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+            {% else %}
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>
+            {% endif %}
+            <div>{{ message }}</div>
+          </div>
+        {% endfor %}
+      </div>
     </div>
   {% endif %}
 
-  <main class="max-w-6xl mx-auto w-full px-4 py-8 flex-1">
+  <main id="main-content" style="flex: 1 1 auto;">
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="border-t border-gray-200 bg-white">
-    <div class="max-w-6xl mx-auto px-4 py-4 text-sm text-gray-500">
-      PU Document Sewa — apply for Pokhara University documents online, delivered to your doorstep.
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-main">
+        <div class="footer-brand">
+          {% include "includes/_brand.html" with brand_sub="Pickup & delivery support" %}
+          <p>We collect documents from Pokhara University on your behalf and deliver them to your door, with a clear status trail from receipt to courier dispatch.</p>
+        </div>
+        <div class="footer-col">
+          <h3>Service</h3>
+          <ul>
+            <li><a href="{% url 'document_list' %}">Document catalog</a></li>
+            <li><a href="{% url 'college_list' %}">Affiliated colleges</a></li>
+            <li><a href="{% url 'home' %}#how-it-works">How it works</a></li>
+            <li><a href="{% url 'home' %}#before-you-apply">Before you apply</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Your account</h3>
+          <ul>
+            {% if user.is_authenticated %}
+              <li><a href="{% url 'my_applications' %}">My applications</a></li>
+              <li><a href="{% url 'apply' %}">New application</a></li>
+              <li><a href="{% url 'profile' %}">Profile settings</a></li>
+            {% else %}
+              <li><a href="{% url 'login' %}">Log in</a></li>
+              <li><a href="{% url 'register' %}">Create an account</a></li>
+              <li><a href="{% url 'document_list' %}">Browse documents</a></li>
+            {% endif %}
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Official PU portal</h3>
+          <ul>
+            <li><a href="https://services.pu.edu.np" target="_blank" rel="noopener">services.pu.edu.np <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a></li>
+            <li><a href="{% url 'home' %}#faq">Frequently asked questions</a></li>
+            <li><a href="{% url 'home' %}#service-fee">Fees &amp; payment</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; {% now "Y" %} PU Document Sewa. Pickup &amp; delivery support for Pokhara University students.</p>
+        <p>PU fees are paid directly on services.pu.edu.np. Our delivery fee is collected in cash on delivery.</p>
+      </div>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var toggle = document.querySelector('[data-nav-toggle]');
+      var panel = document.querySelector('[data-nav-panel]');
+      if (toggle && panel) {
+        toggle.addEventListener('click', function () {
+          var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', String(!isOpen));
+          toggle.classList.toggle('is-open', !isOpen);
+          panel.hidden = isOpen;
+          toggle.setAttribute('aria-label', isOpen ? 'Open navigation menu' : 'Close navigation menu');
+        });
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape' && !panel.hidden) {
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.classList.remove('is-open');
+            panel.hidden = true;
+            toggle.setAttribute('aria-label', 'Open navigation menu');
+            toggle.focus();
+          }
+        });
+      }
+
+      document.querySelectorAll('[data-file-input], .file-field input[type="file"]').forEach(function (input) {
+        input.setAttribute('data-file-input', '');
+        input.addEventListener('change', function () {
+          var field = input.closest('.file-field');
+          var label = field ? field.querySelector('[data-file-name]') : null;
+          if (label) {
+            label.textContent = input.files && input.files.length ? input.files[0].name : 'PDF or image · no file selected';
+          }
+        });
+      });
+
+      document.querySelectorAll('form[data-submit-once]').forEach(function (form) {
+        form.addEventListener('submit', function () {
+          var button = form.querySelector('[type="submit"]');
+          if (button && !button.disabled) {
+            button.dataset.originalLabel = button.textContent.trim();
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.textContent = 'Submitting…';
+            form.setAttribute('aria-busy', 'true');
+          }
+        });
+      });
+
+      window.addEventListener('pageshow', function () {
+        document.querySelectorAll('form[data-submit-once] button[aria-busy="true"]').forEach(function (button) {
+          button.disabled = false;
+          button.removeAttribute('aria-busy');
+          if (button.dataset.originalLabel) {
+            button.textContent = button.dataset.originalLabel;
+          }
+        });
+        document.querySelectorAll('form[data-submit-once][aria-busy="true"]').forEach(function (form) {
+          form.removeAttribute('aria-busy');
+        });
+      });
+
+      document.querySelectorAll('.field.has-error').forEach(function (field) {
+        var error = field.querySelector('.field-error');
+        field.querySelectorAll('input, select, textarea').forEach(function (input) {
+          input.setAttribute('aria-invalid', 'true');
+          if (error && error.id) {
+            var ids = input.getAttribute('aria-describedby');
+            input.setAttribute('aria-describedby', ids ? ids + ' ' + error.id : error.id);
+          }
+        });
+      });
+
+      var header = document.querySelector('[data-site-header]');
+      if (header) {
+        window.addEventListener('resize', function () {
+          if (window.innerWidth >= 1024) {
+            var t = header.querySelector('[data-nav-toggle]');
+            var p = header.querySelector('[data-nav-panel]');
+            if (t && p) {
+              t.setAttribute('aria-expanded', 'false');
+              t.classList.remove('is-open');
+              p.hidden = true;
+            }
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

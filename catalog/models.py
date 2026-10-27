@@ -1,11 +1,21 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
+
+from config.pricing import MINIMUM_SERVICE_FEE_RS
 
 
 class DocumentType(models.Model):
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
-    fee_rs = models.PositiveIntegerField(verbose_name="Our service fee (Rs.)")
+    fee_rs = models.PositiveIntegerField(
+        verbose_name="Minimum service fee (Rs.)",
+        validators=[MinValueValidator(MINIMUM_SERVICE_FEE_RS)],
+        help_text=(
+            "Starting pickup & delivery fee for this document. Staff confirm the final "
+            "fee for each application based on location and urgency."
+        ),
+    )
     description = models.TextField(blank=True)
     required_docs = models.JSONField(default=list)
     processing_days = models.PositiveIntegerField(default=7)

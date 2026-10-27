@@ -1,24 +1,92 @@
 {% extends "base.html" %}
 
-{% block title %}Profile — PU Document Sewa{% endblock %}
+{% block title %}Your profile — PU Document Sewa{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-bold mb-6">Your Profile</h1>
-  <form method="post" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-      <div class="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{{ form.non_field_errors }}</div>
-    {% endif %}
-    <div class="text-sm text-gray-500">Email: <span class="text-gray-800">{{ user.email }}</span> · Role: <span class="text-gray-800">{{ user.get_role_display }}</span></div>
-    {% for field in form %}
+<div class="shell section-sm">
+  <div class="page-head">
+    <div>
+      <p class="eyebrow">Account</p>
+      <h1>Your profile</h1>
+      <p>Keep your contact and student details current so future applications are prefilled and your documents reach the right address.</p>
+    </div>
+    <a href="{% url 'my_applications' %}" class="btn btn-secondary">My applications</a>
+  </div>
+
+  <div class="profile-banner">
+    <div class="profile-id">
+      <span class="profile-avatar" aria-hidden="true">{{ user.name|default:user.email|slice:":1"|upper }}</span>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% for error in field.errors %}<p class="text-xs text-red-600 mt-1">{{ error }}</p>{% endfor %}
+        <strong>{{ user.name|default:user.email }}</strong>
+        <span>{{ user.email }} · {{ user.get_role_display }}</span>
       </div>
-    {% endfor %}
-    <button class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Save changes</button>
-  </form>
+    </div>
+    <div class="badge badge-brand">{{ user.get_role_display }} account</div>
+  </div>
+
+  <div class="summary-grid" style="margin-bottom: 1.25rem;">
+    <div class="summary-item">
+      <span>Email</span>
+      <strong style="overflow-wrap: anywhere;">{{ user.email }}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Phone</span>
+      <strong>{{ user.phone|default:"Not added" }}</strong>
+    </div>
+    <div class="summary-item">
+      <span>College</span>
+      <strong>{{ user.college.name|default:"Not selected" }}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Account type</span>
+      <strong>{{ user.get_role_display }}</strong>
+    </div>
+  </div>
+
+  <div class="form-card" style="max-width: 48rem; margin-inline: auto;">
+    <form method="post" data-submit-once>
+      {% csrf_token %}
+      {% include "includes/_form_errors.html" %}
+
+      <div class="form-section">
+        <div class="form-section-head">
+          <span class="form-section-number">1</span>
+          <div>
+            <h2>Contact details</h2>
+            <p>Used to prefill new applications and for courier contact.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          {% include "includes/_field.html" with field=form.name %}
+          {% include "includes/_field.html" with field=form.phone %}
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-head">
+          <span class="form-section-number">2</span>
+          <div>
+            <h2>Academic details</h2>
+            <p>Optional student references help us match your documents.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          {% include "includes/_field.html" with field=form.college %}
+          {% include "includes/_field.html" with field=form.symbol_no %}
+          {% include "includes/_field.html" with field=form.reg_no %}
+          {% include "includes/_field.html" with field=form.citizenship_no %}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+      <p class="form-note">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>
+        Your email address is used to log in and cannot be changed here.
+      </p>
+    </form>
+  </div>
 </div>
 {% endblock %}

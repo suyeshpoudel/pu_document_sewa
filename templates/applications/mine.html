@@ -1,45 +1,98 @@
 {% extends "base.html" %}
 
-{% block title %}My Applications — PU Document Sewa{% endblock %}
+{% block title %}My applications — PU Document Sewa{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold">My Applications</h1>
-  <a href="{% url 'apply' %}" class="rounded-lg bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700">New Application</a>
-</div>
+<div class="shell section-sm">
+  <div class="dashboard-head">
+    <div>
+      <p class="eyebrow">Your dashboard</p>
+      <h1>My applications</h1>
+      <p>Follow each request from receipt verification to courier delivery.</p>
+    </div>
+    <a href="{% url 'apply' %}" class="btn btn-primary">New application</a>
+  </div>
 
-<div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-  <table class="min-w-full text-sm">
-    <thead class="bg-gray-50 text-gray-600 text-left">
-      <tr>
-        <th class="px-4 py-3">#</th>
-        <th class="px-4 py-3">Document</th>
-        <th class="px-4 py-3">Status</th>
-        <th class="px-4 py-3">Submitted</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100">
+  <div class="summary-grid" style="margin-bottom: 1.35rem;">
+    <div class="summary-item">
+      <span>Total</span>
+      <strong>{{ total_count }}</strong>
+    </div>
+    <div class="summary-item">
+      <span>In progress</span>
+      <strong>{{ active_count }}</strong>
+    </div>
+    <div class="summary-item">
+      <span>Delivered</span>
+      <strong>{{ delivered_count }}</strong>
+    </div>
+    <a href="{% url 'apply' %}" class="summary-item" style="display: block;">
+      <span>Next step</span>
+      <strong style="color: var(--brand-700);">Start a new request →</strong>
+    </a>
+  </div>
+
+  {% if applications %}
+    <div class="app-list">
       {% for app in applications %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 text-gray-500">{{ app.pk }}</td>
-          <td class="px-4 py-3 font-medium">{{ app.document_type.name }}</td>
-          <td class="px-4 py-3">
-            <span class="rounded-full text-xs px-2.5 py-1
-              {% if app.status == 'DELIVERED' %}bg-green-50 text-green-700
-              {% elif app.status == 'REJECTED' or app.status == 'CANCELLED' %}bg-red-50 text-red-700
-              {% elif app.status == 'DISPATCHED' %}bg-blue-50 text-blue-700
-              {% else %}bg-yellow-50 text-yellow-700{% endif %}">{{ app.get_status_display }}</span>
-          </td>
-          <td class="px-4 py-3 text-gray-500">{{ app.created_at|date:"M j, Y" }}</td>
-          <td class="px-4 py-3 text-right">
-            <a href="{% url 'application_detail' app.pk %}" class="text-blue-600 hover:underline">View</a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">No applications yet. <a href="{% url 'apply' %}" class="text-blue-600 hover:underline">Apply now</a></td></tr>
+        <article class="app-card">
+          <div class="app-card-main">
+            <div class="app-card-top">
+              <div>
+                <h2><a href="{% url 'application_detail' app.pk %}">{{ app.document_type.name }}</a></h2>
+                <p class="app-ref">Application #{{ app.pk }} · PU ref <span class="mono">{{ app.pu_reference_no }}</span></p>
+              </div>
+              {% include "includes/_status_badge.html" with application=app %}
+            </div>
+
+            <div class="app-meta">
+              <span>
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                Submitted {{ app.created_at|date:"M j, Y" }}
+              </span>
+              <span>
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+                {{ app.college.name|default:"College not set" }}
+              </span>
+              <span>
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                {{ app.get_urgency_display }} urgency
+              </span>
+              {% if app.document_type.includes.exists %}
+                <span>
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                  Bundle · {{ app.document_type.includes.count }} certificates
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="mini-progress" aria-hidden="true">
+              {% for step in app.timeline %}
+                <span class="{% if step.reached %}reached{% endif %}{% if step.current %} current{% endif %}"></span>
+              {% endfor %}
+            </div>
+            <p class="muted-sm" style="margin-top: 0.45rem;">Updated {{ app.updated_at|date:"M j, Y" }}</p>
+          </div>
+
+          <div class="app-card-side">
+            <div>
+              <span class="price"><strong>Rs. {{ app.service_fee_rs|floatformat:0 }}</strong><span>{% if app.fee_confirmed %}pay on delivery{% else %}estimated fee{% endif %}</span></span>
+              <p class="app-updated">{% if app.status == 'DELIVERED' %}Delivered{% else %}Updated {{ app.updated_at|date:"M j" }}{% endif %}</p>
+            </div>
+            <a href="{% url 'application_detail' app.pk %}" class="btn btn-secondary btn-sm">View details</a>
+          </div>
+        </article>
       {% endfor %}
-    </tbody>
-  </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <span class="empty-icon">
+        <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+      </span>
+      <h2>No applications yet</h2>
+      <p>When you submit a document request, it will appear here with its current status, delivery details, and progress timeline.</p>
+      <a href="{% url 'apply' %}" class="btn btn-primary">Start your first application</a>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
